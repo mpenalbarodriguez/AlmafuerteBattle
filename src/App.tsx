@@ -17,6 +17,7 @@ import { CharacterSelect } from './components/CharacterSelect';
 import { FightArena } from './components/FightArena';
 import { SpriteUploaderModal } from './components/SpriteUploaderModal';
 import { ControlsGuideModal } from './components/ControlsGuideModal';
+import { FullscreenPrompt } from './components/FullscreenPrompt';
 
 export default function App() {
   const [view, setView] = useState<'select' | 'arena'>('select');
@@ -24,6 +25,9 @@ export default function App() {
   const [p2Char, setP2Char] = useState<CharacterId>('caito');
   const [gameMode, setGameMode] = useState<GameMode>('vs_cpu');
   const [difficulty, setDifficulty] = useState<AIDifficulty>('normal');
+
+  // Fullscreen gate overlay: shown immediately when page loads
+  const [hasDismissedGate, setHasDismissedGate] = useState<boolean>(false);
 
   // Sprite sheets
   const [varetaSprites, setVaretaSprites] = useState<CharacterSprites>(() => createFallbackSprites('vareta'));
@@ -36,30 +40,50 @@ export default function App() {
   // Global Drag & Drop state
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-  // Load any previously saved spritesheets from IndexedDB on startup
+  // Load spritesheets from /sprites/ folder or previously saved in IndexedDB on startup
   useEffect(() => {
-    const loadSaved = async () => {
-      // Vareta
-      const varetaDataUrl = await loadSpriteSheetDataUrl('vareta');
-      if (varetaDataUrl) {
-        const img = new Image();
-        img.onload = () => {
-          setVaretaSprites(sliceSpriteSheet(img));
-        };
-        img.src = varetaDataUrl;
+    const loadSavedOrStatic = async () => {
+      // Helper to try loading an image from public folder
+      const tryLoadStatic = (path: string): Promise<HTMLImageElement | null> => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = path;
+        });
+      };
+
+      // 1. Try static /sprites/vareta.png first, otherwise check IndexedDB
+      const staticVareta = await tryLoadStatic('/sprites/vareta.png');
+      if (staticVareta) {
+        setVaretaSprites(sliceSpriteSheet(staticVareta));
+      } else {
+        const varetaDataUrl = await loadSpriteSheetDataUrl('vareta');
+        if (varetaDataUrl) {
+          const img = new Image();
+          img.onload = () => {
+            setVaretaSprites(sliceSpriteSheet(img));
+          };
+          img.src = varetaDataUrl;
+        }
       }
 
-      // Caíto
-      const caitoDataUrl = await loadSpriteSheetDataUrl('caito');
-      if (caitoDataUrl) {
-        const img = new Image();
-        img.onload = () => {
-          setCaitoSprites(sliceSpriteSheet(img));
-        };
-        img.src = caitoDataUrl;
+      // 2. Try static /sprites/caito.png first, otherwise check IndexedDB
+      const staticCaito = await tryLoadStatic('/sprites/caito.png');
+      if (staticCaito) {
+        setCaitoSprites(sliceSpriteSheet(staticCaito));
+      } else {
+        const caitoDataUrl = await loadSpriteSheetDataUrl('caito');
+        if (caitoDataUrl) {
+          const img = new Image();
+          img.onload = () => {
+            setCaitoSprites(sliceSpriteSheet(img));
+          };
+          img.src = caitoDataUrl;
+        }
       }
     };
-    loadSaved();
+    loadSavedOrStatic();
   }, []);
 
   // Global window drop handler for dragging PNG sprite sheets directly into the game
@@ -133,8 +157,41 @@ export default function App() {
     }
   };
 
+  const handleEnterFullscreen = async () => {
+    try {
+      const docEl = document.documentElement as any;
+      if (docEl.requestFullscreen) {
+        await docEl.requestFullscreen();
+      } else if (docEl.webkitRequestFullscreen) {
+        await docEl.webkitRequestFullscreen();
+      } else if (docEl.mozRequestFullScreen) {
+        await docEl.mozRequestFullScreen();
+      } else if (docEl.msRequestFullscreen) {
+        await docEl.msRequestFullscreen();
+      }
+
+      // Try locking orientation to landscape if supported by device/browser
+      if (screen.orientation && (screen.orientation as any).lock) {
+        try {
+          await (screen.orientation as any).lock('landscape');
+        } catch {
+          // Orientation lock might require PWA or specific permissions, gracefully ignore
+        }
+      }
+    } catch (e) {
+      console.warn('Fullscreen request failed or was dismissed:', e);
+    } finally {
+      setHasDismissedGate(true);
+    }
+  };
+
   return (
     <div className="relative w-screen h-screen bg-neutral-950 text-white overflow-hidden select-none font-tech">
+      {/* Mandatory Fullscreen Prompt on Load */}
+      {!hasDismissedGate && (
+        <FullscreenPrompt onEnterFullscreen={handleEnterFullscreen} />
+      )}
+
       {/* Global Drag Overlay */}
       {isDraggingOver && (
         <div className="fixed inset-0 z-50 bg-amber-500/20 border-4 border-dashed border-amber-400 backdrop-blur-sm flex items-center justify-center pointer-events-none">

@@ -105,6 +105,13 @@ export const FightArena: React.FC<FightArenaProps> = ({
         } else if ((containerRef.current as any)?.webkitRequestFullscreen) {
           await (containerRef.current as any).webkitRequestFullscreen();
         }
+        if (screen.orientation && (screen.orientation as any).lock) {
+          try {
+            await (screen.orientation as any).lock('landscape');
+          } catch {
+            // Optional orientation lock
+          }
+        }
       } else {
         if (document.exitFullscreen) {
           await document.exitFullscreen();
