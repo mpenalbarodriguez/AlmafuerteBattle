@@ -68,9 +68,10 @@ export function createEmptySprite(w = 120, h = 160): SlicedSprite {
 }
 
 /**
- * Removes white background from a canvas by setting alpha to 0 for pixels where R,G,B > threshold
+ * Removes white background from a canvas by setting alpha to 0 for pixels where R,G,B > threshold.
+ * If the image ALREADY has transparent pixels around the borders, it preserves it without stripping white details.
  */
-export function removeWhiteBackground(sourceCanvas: HTMLCanvasElement, threshold = 240): HTMLCanvasElement {
+export function removeWhiteBackground(sourceCanvas: HTMLCanvasElement, threshold = 242): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = sourceCanvas.width;
   canvas.height = sourceCanvas.height;
@@ -80,6 +81,29 @@ export function removeWhiteBackground(sourceCanvas: HTMLCanvasElement, threshold
   ctx.drawImage(sourceCanvas, 0, 0);
   const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imgData.data;
+
+  // Check if image already has transparent pixels at the corners or borders
+  const w = canvas.width;
+  const h = canvas.height;
+  const sampleCorners = [
+    0, // top-left
+    (w - 1) * 4, // top-right
+    ((h - 1) * w) * 4, // bottom-left
+    ((h - 1) * w + (w - 1)) * 4 // bottom-right
+  ];
+  
+  let transparentCorners = 0;
+  for (const idx of sampleCorners) {
+    if (data[idx + 3] < 30) {
+      transparentCorners++;
+    }
+  }
+
+  // If at least 2 corners are already transparent, it's already an alpha-masked PNG!
+  // Don't erase white pixels from clothing, eyes, or effects!
+  if (transparentCorners >= 2) {
+    return canvas;
+  }
 
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];

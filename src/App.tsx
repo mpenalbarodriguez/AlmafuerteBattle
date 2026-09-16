@@ -44,17 +44,34 @@ export default function App() {
   useEffect(() => {
     const loadSavedOrStatic = async () => {
       // Helper to try loading an image from public folder
-      const tryLoadStatic = (path: string): Promise<HTMLImageElement | null> => {
+      const tryLoadStatic = (paths: string[]): Promise<HTMLImageElement | null> => {
         return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-          img.src = path;
+          let currentIdx = 0;
+          const tryNext = () => {
+            if (currentIdx >= paths.length) {
+              resolve(null);
+              return;
+            }
+            const path = paths[currentIdx++];
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => tryNext();
+            img.src = path;
+          };
+          tryNext();
         });
       };
 
-      // 1. Try static /sprites/vareta.png first, otherwise check IndexedDB
-      const staticVareta = await tryLoadStatic('/sprites/vareta.png');
+      // 1. Try static Vareta candidates first, otherwise check IndexedDB
+      const varetaCandidates = [
+        '/sprites/vareta.png',
+        '/sprites/sprites_vareta.png',
+        '/sprites/Vareta.png',
+        '/sprites/vareta.PNG',
+        '/vareta.png',
+        '/sprites_vareta.png'
+      ];
+      const staticVareta = await tryLoadStatic(varetaCandidates);
       if (staticVareta) {
         setVaretaSprites(sliceSpriteSheet(staticVareta));
       } else {
@@ -68,8 +85,16 @@ export default function App() {
         }
       }
 
-      // 2. Try static /sprites/caito.png first, otherwise check IndexedDB
-      const staticCaito = await tryLoadStatic('/sprites/caito.png');
+      // 2. Try static Caíto candidates first, otherwise check IndexedDB
+      const caitoCandidates = [
+        '/sprites/caito.png',
+        '/sprites/sprites_caito.png',
+        '/sprites/Caito.png',
+        '/sprites/caito.PNG',
+        '/caito.png',
+        '/sprites_caito.png'
+      ];
+      const staticCaito = await tryLoadStatic(caitoCandidates);
       if (staticCaito) {
         setCaitoSprites(sliceSpriteSheet(staticCaito));
       } else {
