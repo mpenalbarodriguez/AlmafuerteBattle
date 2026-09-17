@@ -237,15 +237,30 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
     rawBands.push({ minY: startY, maxY: totalH - 1 });
   }
 
-  // If auto-detection found close to 8 bands, use them, otherwise divide uniformly into 8 rows
+  // Mirror canvas helper for left/right facing fallbacks
+  const mirrorCanvas = (sprite: SlicedSprite): SlicedSprite => {
+    if (!sprite || !sprite.image || sprite.width < 5) return createEmptySprite();
+    const c = document.createElement('canvas');
+    c.width = sprite.width;
+    c.height = sprite.height;
+    const mCtx = c.getContext('2d');
+    if (!mCtx) return sprite;
+    mCtx.translate(c.width, 0);
+    mCtx.scale(-1, 1);
+    mCtx.drawImage(sprite.image, 0, 0);
+    return { image: c, width: c.width, height: c.height };
+  };
+
+  // Support 12 rows (new format with block, hurt, defeat, projectile) or legacy 8 rows
   let rowBands: Band[] = [];
-  if (rawBands.length >= 7 && rawBands.length <= 9) {
-    // Merge any very close bands or use as is
+  if (rawBands.length >= 11 && rawBands.length <= 15) {
+    rowBands = rawBands.slice(0, 12);
+  } else if (rawBands.length >= 7 && rawBands.length <= 9) {
     rowBands = rawBands.slice(0, 8);
   } else {
-    // Fallback uniform 8 rows
-    const rowH = totalH / 8;
-    for (let i = 0; i < 8; i++) {
+    // Default uniform division into 12 rows for current format
+    const rowH = totalH / 12;
+    for (let i = 0; i < 12; i++) {
       rowBands.push({
         minY: Math.floor(i * rowH),
         maxY: Math.floor((i + 1) * rowH)
@@ -371,6 +386,58 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
   const specialBlastLeft = r8Sprites[0] || createEmptySprite();
   const specialPrepLeft = r8Sprites[1] || createEmptySprite();
 
+  // Row 9: 2 sprites: Posición de bloqueo mirando a la derecha (idx 0) y a la izquierda (idx 1)
+  let blockRight: SlicedSprite;
+  let blockLeft: SlicedSprite;
+  if (rowBands.length >= 9) {
+    const r9Sprites = extractRowSprites(rowBands[8], 2);
+    blockRight = r9Sprites[0] || createEmptySprite();
+    blockLeft = r9Sprites[1] || createEmptySprite();
+    if (blockRight.width > 5 && blockLeft.width <= 5) {
+      blockLeft = mirrorCanvas(blockRight);
+    } else if (blockLeft.width > 5 && blockRight.width <= 5) {
+      blockRight = mirrorCanvas(blockLeft);
+    }
+  } else {
+    blockRight = crouchRight;
+    blockLeft = crouchLeft;
+  }
+
+  // Row 10: 2 sprites: Personaje recibe daño mirando a la derecha (idx 0) y a la izquierda (idx 1)
+  let hurtRight: SlicedSprite;
+  let hurtLeft: SlicedSprite;
+  if (rowBands.length >= 10) {
+    const r10Sprites = extractRowSprites(rowBands[9], 2);
+    hurtRight = r10Sprites[0] || createEmptySprite();
+    hurtLeft = r10Sprites[1] || createEmptySprite();
+    if (hurtRight.width > 5 && hurtLeft.width <= 5) {
+      hurtLeft = mirrorCanvas(hurtRight);
+    } else if (hurtLeft.width > 5 && hurtRight.width <= 5) {
+      hurtRight = mirrorCanvas(hurtLeft);
+    }
+  } else {
+    hurtRight = mirrorCanvas(idleLeft[0]);
+    hurtLeft = mirrorCanvas(idleRight[0]);
+  }
+
+  // Row 11: 1 sprite: Personaje derrotado cae al suelo vencido y ahí se queda
+  let defeated: SlicedSprite;
+  if (rowBands.length >= 11) {
+    const r11Sprites = extractRowSprites(rowBands[10], 1);
+    defeated = r11Sprites[0] || createEmptySprite();
+  } else {
+    defeated = crouchRight;
+  }
+
+  // Row 12: 1 sprite: Es el poder especial que tira el personaje (proyectil horizontal)
+  let projectileSprite: SlicedSprite;
+  if (rowBands.length >= 12) {
+    const r12Sprites = extractRowSprites(rowBands[11], 1);
+    projectileSprite = r12Sprites[0] || createEmptySprite();
+  } else {
+    projectileSprite = createEmptySprite();
+  }
+
   return {
     loaded: true,
     rawImage: image,
@@ -395,6 +462,12 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
     specialPrepLeft,
     specialBlastRight,
     specialBlastLeft,
+    blockRight,
+    blockLeft,
+    hurtRight,
+    hurtLeft,
+    defeated,
+    projectileSprite,
   };
 }
 
@@ -556,6 +629,35 @@ export function createFallbackSprites(charId: CharacterId): CharacterSprites {
         ctx.rotate(-0.9);
         ctx.fillRect(0, 0, 8, 22);
         ctx.restore();
+      } else if (action === 'block') {
+        // Defensive block stance
+        ctx.fillStyle = '#d4a373';
+        ctx.fillRect(6, -88, 8, 24);
+        ctx.fillRect(14, -84, 8, 22);
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+        ctx.beginPath();
+        ctx.arc(15, -75, 20, -Math.PI / 2, Math.PI / 2);
+        ctx.fill();
+      } else if (action === 'hit') {
+        // Recoil from damage
+        ctx.translate(-12, 5);
+        ctx.rotate(-0.28);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(0, -95, 8, 6);
+      } else if (action === 'defeated') {
+        // Fallen horizontally on the ground
+        ctx.translate(-40, 20);
+        ctx.rotate(Math.PI / 2);
+      } else if (action === 'projectile') {
+        // Toxic green projectile orb
+        const grad = ctx.createRadialGradient(0, -75, 4, 0, -75, 28);
+        grad.addColorStop(0, '#86efac');
+        grad.addColorStop(0.5, '#22c55e');
+        grad.addColorStop(1, 'rgba(21, 128, 61, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, -75, 28, 0, Math.PI * 2);
+        ctx.fill();
       }
     } else {
       // Caíto: Green tank top, muscular build, glowing yellow eyes
@@ -670,6 +772,35 @@ export function createFallbackSprites(charId: CharacterId): CharacterSprites {
         ctx.beginPath();
         ctx.arc(16, -92, 5, 0, Math.PI * 2);
         ctx.fill();
+      } else if (action === 'block') {
+        // Muscular cross-arm guard
+        ctx.fillStyle = '#c68642';
+        ctx.fillRect(8, -85, 10, 22);
+        ctx.fillRect(16, -82, 10, 20);
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.4)';
+        ctx.beginPath();
+        ctx.arc(16, -75, 22, -Math.PI / 2, Math.PI / 2);
+        ctx.fill();
+      } else if (action === 'hit') {
+        // Recoil from damage
+        ctx.translate(-12, 5);
+        ctx.rotate(-0.28);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(4, -95, 8, 6);
+      } else if (action === 'defeated') {
+        // Fallen horizontally on the ground
+        ctx.translate(-40, 20);
+        ctx.rotate(Math.PI / 2);
+      } else if (action === 'projectile') {
+        // Radiant golden ki blast orb
+        const grad = ctx.createRadialGradient(0, -75, 4, 0, -75, 28);
+        grad.addColorStop(0, '#fef08a');
+        grad.addColorStop(0.5, '#eab308');
+        grad.addColorStop(1, 'rgba(234, 179, 8, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, -75, 28, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
@@ -700,5 +831,11 @@ export function createFallbackSprites(charId: CharacterId): CharacterSprites {
     specialPrepLeft: renderFrame('special_prep', -1, 0),
     specialBlastRight: renderFrame('special_blast', 1, 0),
     specialBlastLeft: renderFrame('special_blast', -1, 0),
+    blockRight: renderFrame('block', 1, 0),
+    blockLeft: renderFrame('block', -1, 0),
+    hurtRight: renderFrame('hit', 1, 0),
+    hurtLeft: renderFrame('hit', -1, 0),
+    defeated: renderFrame('defeated', 1, 0),
+    projectileSprite: renderFrame('projectile', 1, 0),
   };
 }

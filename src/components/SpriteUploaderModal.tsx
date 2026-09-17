@@ -184,7 +184,7 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
             Arrastra aquí la hoja de sprites de {activeTab === 'vareta' ? 'Vareta' : 'Caíto'}
           </h3>
           <p className="text-xs text-neutral-400 max-w-md mx-auto mb-3">
-            O haz clic para seleccionar tu archivo PNG desde tu equipo. Se recortará automáticamente según las 8 filas especificadas y se removerá el fondo blanco.
+            O haz clic para seleccionar tu archivo PNG desde tu equipo. Se recortará automáticamente según el formato de 12 filas (o 8 filas clásicas) con detección inteligente de franjas y remoción de fondo blanco.
           </p>
 
           <span className="inline-block text-xs font-semibold px-3 py-1.5 rounded-full bg-neutral-800 text-amber-300 border border-neutral-700">
@@ -281,6 +281,30 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
                   <CanvasPreview canvas={currentSprites.victory?.image} />
                 </div>
                 <span>Victoria</span>
+              </div>
+              <div className="bg-neutral-900/80 p-2 rounded border border-cyan-800/80 flex flex-col items-center">
+                <div className="h-16 flex items-center justify-center">
+                  <CanvasPreview canvas={currentSprites.blockRight?.image} />
+                </div>
+                <span className="text-cyan-300 font-semibold">L9: Bloqueo</span>
+              </div>
+              <div className="bg-neutral-900/80 p-2 rounded border border-red-800/80 flex flex-col items-center">
+                <div className="h-16 flex items-center justify-center">
+                  <CanvasPreview canvas={currentSprites.hurtRight?.image} />
+                </div>
+                <span className="text-red-300 font-semibold">L10: Daño</span>
+              </div>
+              <div className="bg-neutral-900/80 p-2 rounded border border-neutral-700 flex flex-col items-center">
+                <div className="h-16 flex items-center justify-center">
+                  <CanvasPreview canvas={currentSprites.defeated?.image} />
+                </div>
+                <span className="text-neutral-300 font-semibold">L11: Derrotado</span>
+              </div>
+              <div className="bg-neutral-900/80 p-2 rounded border border-amber-700/80 flex flex-col items-center">
+                <div className="h-16 flex items-center justify-center">
+                  <CanvasPreview canvas={currentSprites.projectileSprite?.image} />
+                </div>
+                <span className="text-amber-300 font-semibold">L12: Proyectil</span>
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ export type AnimationState =
   | 'walk_back'
   | 'crouch'
   | 'jump'
+  | 'block'
   | 'punch'
   | 'kick'
   | 'air_punch'
@@ -125,6 +126,7 @@ export interface KeyControls {
   right: boolean;
   up: boolean;
   down: boolean;
+  block: boolean;
   punch: boolean;
   kick: boolean;
   special: boolean;
@@ -140,7 +142,7 @@ export interface CharacterSprites {
   loaded: boolean;
   rawImage?: HTMLImageElement;
   
-  // Row 1: 1 sprite
+  // Row 1: 1 sprite (Victory)
   victory: SlicedSprite;
   
   // Row 2 & 3: [idle1, idle2, crouch, jump]
@@ -170,4 +172,18 @@ export interface CharacterSprites {
   specialPrepLeft: SlicedSprite;
   specialBlastRight: SlicedSprite;
   specialBlastLeft: SlicedSprite;
+
+  // Row 9: Posición de bloqueo mirando a la derecha y a la izquierda
+  blockRight: SlicedSprite;
+  blockLeft: SlicedSprite;
+
+  // Row 10: Personaje recibe daño mirando a la derecha y a la izquierda
+  hurtRight: SlicedSprite;
+  hurtLeft: SlicedSprite;
+
+  // Row 11: Personaje derrotado cae al suelo vencido y ahí se queda
+  defeated: SlicedSprite;
+
+  // Row 12: Es el poder especial que tira el personaje (proyectil horizontal)
+  projectileSprite: SlicedSprite;
 }

@@ -19,6 +19,7 @@ export class AIController {
       right: false,
       up: false,
       down: false,
+      block: false,
       punch: false,
       kick: false,
       special: false
@@ -40,6 +41,7 @@ export class AIController {
 
     // React to incoming attacks with blocking
     if (playerIsAttacking && dist < 160 && Math.random() < blockChance) {
+      controls.block = true;
       // Hold back relative to player
       if (player.x < cpu.x) {
         controls.right = true;

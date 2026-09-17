@@ -54,6 +54,10 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({ isOpen, 
                   <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">S</span>
                 </li>
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
+                  <span className="text-neutral-400">Bloqueo:</span>
+                  <span className="font-mono bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded text-cyan-300 font-bold">B ó Espacio (o atrás)</span>
+                </li>
+                <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Piña (Golpe):</span>
                   <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-amber-300 font-bold">J ó F</span>
                 </li>
@@ -88,6 +92,10 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({ isOpen, 
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Agacharse:</span>
                   <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">↓</span>
+                </li>
+                <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
+                  <span className="text-neutral-400">Bloqueo:</span>
+                  <span className="font-mono bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded text-cyan-300 font-bold">Num 0 ó Y (o atrás)</span>
                 </li>
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Piña (Golpe):</span>

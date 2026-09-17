@@ -116,6 +116,12 @@ export function updateFighter(
   // State timers
   fighter.stateTimer++;
 
+  // Knockdown / Defeated state
+  if (fighter.health <= 0) {
+    fighter.state = 'knockdown';
+    return;
+  }
+
   // Handle Hit Stun
   if (fighter.hitStun > 0) {
     fighter.hitStun--;
@@ -126,6 +132,7 @@ export function updateFighter(
   // Handle Block Stun
   if (fighter.blockStun > 0) {
     fighter.blockStun--;
+    fighter.state = 'block';
     return;
   }
 
@@ -223,9 +230,16 @@ export function updateFighter(
     return;
   }
 
-  // Blocking check: holding backwards relative to opponent
+  // Blocking check: holding backwards relative to opponent OR pressing the new dedicated block button
   const holdingBack = (fighter.facing === 1 && controls.left) || (fighter.facing === -1 && controls.right);
-  fighter.isBlocking = holdingBack && fighter.isGrounded;
+  fighter.isBlocking = (controls.block || holdingBack) && fighter.isGrounded;
+
+  // BLOCK INPUT (dedicated button or backward guard)
+  if (fighter.isBlocking && fighter.isGrounded) {
+    fighter.state = 'block';
+    fighter.vx *= 0.4;
+    return;
+  }
 
   // SPECIAL MOVE INPUT
   if (controls.special && fighter.isGrounded && fighter.meter >= 25) {

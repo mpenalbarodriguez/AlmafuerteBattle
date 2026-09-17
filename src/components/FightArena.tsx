@@ -132,10 +132,10 @@ export const FightArena: React.FC<FightArenaProps> = ({
 
   // Input states
   const p1ControlsRef = useRef<KeyControls>({
-    left: false, right: false, up: false, down: false, punch: false, kick: false, special: false
+    left: false, right: false, up: false, down: false, block: false, punch: false, kick: false, special: false
   });
   const p2ControlsRef = useRef<KeyControls>({
-    left: false, right: false, up: false, down: false, punch: false, kick: false, special: false
+    left: false, right: false, up: false, down: false, block: false, punch: false, kick: false, special: false
   });
 
   // Combat entities
@@ -156,20 +156,22 @@ export const FightArena: React.FC<FightArenaProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const code = e.code;
-      // P1 Controls: WASD + J/K/L or F/G/H
+      // P1 Controls: WASD + J/K/L/B or F/G/H/Space
       if (code === 'KeyA') p1ControlsRef.current.left = true;
       if (code === 'KeyD') p1ControlsRef.current.right = true;
       if (code === 'KeyW') p1ControlsRef.current.up = true;
       if (code === 'KeyS') p1ControlsRef.current.down = true;
+      if (code === 'KeyB' || code === 'Space') p1ControlsRef.current.block = true;
       if (code === 'KeyJ' || code === 'KeyF') p1ControlsRef.current.punch = true;
       if (code === 'KeyK' || code === 'KeyG') p1ControlsRef.current.kick = true;
       if (code === 'KeyL' || code === 'KeyH') p1ControlsRef.current.special = true;
 
-      // P2 Controls: Arrow Keys + Num 1/2/3 or U/I/O
+      // P2 Controls: Arrow Keys + Num 1/2/3/0 or U/I/O/Y
       if (code === 'ArrowLeft') p2ControlsRef.current.left = true;
       if (code === 'ArrowRight') p2ControlsRef.current.right = true;
       if (code === 'ArrowUp') p2ControlsRef.current.up = true;
       if (code === 'ArrowDown') p2ControlsRef.current.down = true;
+      if (code === 'Numpad0' || code === 'KeyY') p2ControlsRef.current.block = true;
       if (code === 'Numpad1' || code === 'KeyU') p2ControlsRef.current.punch = true;
       if (code === 'Numpad2' || code === 'KeyI') p2ControlsRef.current.kick = true;
       if (code === 'Numpad3' || code === 'KeyO') p2ControlsRef.current.special = true;
@@ -181,6 +183,7 @@ export const FightArena: React.FC<FightArenaProps> = ({
       if (code === 'KeyD') p1ControlsRef.current.right = false;
       if (code === 'KeyW') p1ControlsRef.current.up = false;
       if (code === 'KeyS') p1ControlsRef.current.down = false;
+      if (code === 'KeyB' || code === 'Space') p1ControlsRef.current.block = false;
       if (code === 'KeyJ' || code === 'KeyF') p1ControlsRef.current.punch = false;
       if (code === 'KeyK' || code === 'KeyG') p1ControlsRef.current.kick = false;
       if (code === 'KeyL' || code === 'KeyH') p1ControlsRef.current.special = false;
@@ -189,6 +192,7 @@ export const FightArena: React.FC<FightArenaProps> = ({
       if (code === 'ArrowRight') p2ControlsRef.current.right = false;
       if (code === 'ArrowUp') p2ControlsRef.current.up = false;
       if (code === 'ArrowDown') p2ControlsRef.current.down = false;
+      if (code === 'Numpad0' || code === 'KeyY') p2ControlsRef.current.block = false;
       if (code === 'Numpad1' || code === 'KeyU') p2ControlsRef.current.punch = false;
       if (code === 'Numpad2' || code === 'KeyI') p2ControlsRef.current.kick = false;
       if (code === 'Numpad3' || code === 'KeyO') p2ControlsRef.current.special = false;
@@ -233,13 +237,29 @@ export const FightArena: React.FC<FightArenaProps> = ({
     setMatchPhase('intro');
   }, [p1CharId, p2CharId, gameMode]);
 
-  // Helper to pick the correct sprite from the 8 rows
+  // Helper to pick the correct sprite from the 12 rows
   const getFighterSprite = (fighter: Fighter): SlicedSprite => {
     const sprites = fighter.id === 'vareta' ? varetaSprites : caitoSprites;
     const f = fighter.facing;
 
+    // Row 11: Defeated state (stays on the floor)
+    if (fighter.state === 'knockdown' || fighter.health <= 0) {
+      return sprites.defeated;
+    }
+
+    // Row 1: Victory
     if (fighter.state === 'victory') {
       return sprites.victory;
+    }
+
+    // Row 9: Blocking position
+    if (fighter.state === 'block') {
+      return f === 1 ? sprites.blockRight : sprites.blockLeft;
+    }
+
+    // Row 10: Damage / Hit reaction
+    if (fighter.state === 'hit') {
+      return f === 1 ? sprites.hurtRight : sprites.hurtLeft;
     }
 
     if (fighter.state === 'crouch') {
@@ -436,7 +456,25 @@ export const FightArena: React.FC<FightArenaProps> = ({
       // Draw Projectiles
       projectilesRef.current.forEach((p) => {
         ctx.save();
-        if (p.type === 'vomit') {
+        const pSprites = p.ownerId === 'vareta' ? varetaSprites : caitoSprites;
+        const projSprite = pSprites.projectileSprite;
+
+        if (projSprite && projSprite.width > 5) {
+          // Render Row 12 special power sprite moving horizontally
+          const pAspect = projSprite.width / (projSprite.height || 1);
+          const pHeight = Math.max(50, p.height * 1.6);
+          const pWidth = pHeight * pAspect;
+          const drawX = p.facing === 1 ? p.x : p.x - pWidth;
+          const drawY = p.y + (p.height - pHeight) / 2;
+
+          if (p.facing === -1) {
+            ctx.translate(drawX + pWidth, drawY);
+            ctx.scale(-1, 1);
+            ctx.drawImage(projSprite.image, 0, 0, pWidth, pHeight);
+          } else {
+            ctx.drawImage(projSprite.image, drawX, drawY, pWidth, pHeight);
+          }
+        } else if (p.type === 'vomit') {
           // Vareta's Corrosive Bile Wave
           const grad = ctx.createLinearGradient(p.x, p.y, p.x + (p.facing === 1 ? p.width : -p.width), p.y);
           grad.addColorStop(0, 'rgba(34, 197, 94, 0.9)');
@@ -473,12 +511,13 @@ export const FightArena: React.FC<FightArenaProps> = ({
         }
 
         // Target display size for character: ~165px tall
-        const targetHeight = fighter.state === 'crouch' ? 120 : 165;
+        const isDefeated = fighter.state === 'knockdown' || fighter.health <= 0;
+        const targetHeight = fighter.state === 'crouch' ? 120 : isDefeated ? 90 : 165;
         const aspect = sprite.width / (sprite.height || 1);
         const targetWidth = targetHeight * aspect;
 
         const drawX = fighter.x - targetWidth / 2;
-        const drawY = fighter.y - targetHeight;
+        const drawY = isDefeated ? fighter.y - targetHeight + 12 : fighter.y - targetHeight;
 
         ctx.drawImage(sprite.image, drawX, drawY, targetWidth, targetHeight);
         ctx.restore();
@@ -524,18 +563,27 @@ export const FightArena: React.FC<FightArenaProps> = ({
     setMatchPhase('ko');
 
     let roundWinner: Fighter;
+    let roundLoser: Fighter;
     if (reason === 'f1_wins') {
       roundWinner = f1;
+      roundLoser = f2;
     } else if (reason === 'f2_wins') {
       roundWinner = f2;
+      roundLoser = f1;
     } else {
       roundWinner = f1.health >= f2.health ? f1 : f2;
+      roundLoser = roundWinner === f1 ? f2 : f1;
     }
+
+    // Loser falls defeated to ground (Row 11 sprite) and stays there
+    roundLoser.state = 'knockdown';
+    roundLoser.health = 0;
 
     setTimeout(() => {
       roundWinner.roundsWon++;
       setWinner(roundWinner);
       roundWinner.state = 'victory';
+      roundLoser.state = 'knockdown';
       sounds.playVictory();
       setMatchPhase('round_end');
 
@@ -638,8 +686,16 @@ export const FightArena: React.FC<FightArenaProps> = ({
       ref={containerRef}
       className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none"
     >
-      {/* 16:9 Canvas container */}
-      <div className="relative w-full max-w-[1000px] aspect-[1000/560] shadow-2xl bg-neutral-950 border border-neutral-800">
+      {/* 16:9 Canvas container: dynamically clamped so it fits all mobile screens without overflow */}
+      <div 
+        style={{
+          width: 'min(100vw, calc(100vh * (1000 / 560)))',
+          height: 'min(100vh, calc(100vw * (560 / 1000)))',
+          maxWidth: '1000px',
+          maxHeight: '560px',
+        }}
+        className="relative aspect-[1000/560] shadow-2xl bg-neutral-950 border border-neutral-800 shrink-0"
+      >
         <canvas
           id="fight-canvas"
           ref={canvasRef}
