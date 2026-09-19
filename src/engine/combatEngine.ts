@@ -23,7 +23,7 @@ export function createFighter(
 ): Fighter {
   return {
     id,
-    name: id === 'vareta' ? 'Vareta' : 'Caíto',
+    name: id === 'vareta' ? 'Vareta' : id === 'caito' ? 'Caíto' : 'Dr. Telmo',
     isPlayer1,
     isCPU,
     x: isPlayer1 ? 260 : 740,
@@ -198,7 +198,7 @@ export function updateFighter(
             hitCount: 0,
             maxHits: 4
           });
-        } else {
+        } else if (fighter.id === 'caito') {
           sounds.playKiBlast();
           // Golden Ki blast beam
           projectiles.push({
@@ -218,6 +218,26 @@ export function updateFighter(
             hitCount: 0,
             maxHits: 4
           });
+        } else {
+          sounds.playPillBlast();
+          // Doctor Telmo: Medicine Blister Pack
+          projectiles.push({
+            id: 'pills_' + Date.now(),
+            ownerId: 'telmo',
+            x: fighter.x + (fighter.facing === 1 ? 40 : -130),
+            y: fighter.y - 85,
+            vx: fighter.facing * 10,
+            vy: 0,
+            width: 130,
+            height: 65,
+            facing: fighter.facing,
+            life: 0,
+            maxLife: 60,
+            damage: 30,
+            type: 'pills',
+            hitCount: 0,
+            maxHits: 4
+          });
         }
       }
     } else if (fighter.state === 'special_blast') {
@@ -230,11 +250,10 @@ export function updateFighter(
     return;
   }
 
-  // Blocking check: holding backwards relative to opponent OR pressing the new dedicated block button
-  const holdingBack = (fighter.facing === 1 && controls.left) || (fighter.facing === -1 && controls.right);
-  fighter.isBlocking = (controls.block || holdingBack) && fighter.isGrounded;
+  // Blocking check: dedicated block button/key only (backward arrow moves backward)
+  fighter.isBlocking = Boolean(controls.block) && fighter.isGrounded;
 
-  // BLOCK INPUT (dedicated button or backward guard)
+  // BLOCK INPUT (dedicated block button / key)
   if (fighter.isBlocking && fighter.isGrounded) {
     fighter.state = 'block';
     fighter.vx *= 0.4;
@@ -535,7 +554,7 @@ export function updateProjectiles(
         vy: -Math.random() * 3,
         life: 0,
         maxLife: 25,
-        color: p.type === 'vomit' ? '#84cc16' : '#fde047',
+        color: p.type === 'vomit' ? '#84cc16' : p.type === 'ki_blast' ? '#fde047' : '#38bdf8',
         size: Math.random() * 6 + 3,
         type: p.type === 'vomit' ? 'toxic' : 'ki'
       });
@@ -565,12 +584,15 @@ export function updateProjectiles(
         attacker.comboCount++;
         attacker.comboTimer = 75;
 
+        const projLabel = p.type === 'vomit' ? '¡VENENO! -' + dmg : p.type === 'ki_blast' ? '¡ENERGÍA! -' + dmg : '¡PASTILLAS! -' + dmg;
+        const projColor = p.type === 'vomit' ? '#4ade80' : p.type === 'ki_blast' ? '#facc15' : '#38bdf8';
+
         floatingTexts.push({
           id: 'proj_txt_' + Math.random(),
-          text: p.type === 'vomit' ? '¡VENENO! -' + dmg : '¡ENERGÍA! -' + dmg,
+          text: projLabel,
           x: target.x,
           y: target.y - 120,
-          color: p.type === 'vomit' ? '#4ade80' : '#facc15',
+          color: projColor,
           size: 22,
           life: 0,
           maxLife: 35

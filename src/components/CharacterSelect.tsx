@@ -10,6 +10,7 @@ interface CharacterSelectProps {
   onOpenControls: () => void;
   varetaSprites: CharacterSprites;
   caitoSprites: CharacterSprites;
+  telmoSprites: CharacterSprites;
 }
 
 export const CharacterSelect: React.FC<CharacterSelectProps> = ({
@@ -17,7 +18,8 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
   onOpenSprites,
   onOpenControls,
   varetaSprites,
-  caitoSprites
+  caitoSprites,
+  telmoSprites
 }) => {
   const [selectedMode, setSelectedMode] = useState<GameMode>('vs_cpu');
   const [difficulty, setDifficulty] = useState<AIDifficulty>('normal');
@@ -109,44 +111,55 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
         )}
 
         {/* Character Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
           {/* VARETA CARD */}
           <div 
-            className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden ${
+            id="card-char-vareta"
+            className={`relative p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col justify-between ${
               p1Char === 'vareta'
-                ? 'border-amber-400 bg-neutral-900/90 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
+                ? 'border-amber-400 bg-neutral-900/95 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
+                : p2Char === 'vareta'
+                ? 'border-red-500/80 bg-neutral-900/80'
                 : 'border-neutral-800 bg-neutral-950/80 hover:border-neutral-700'
             }`}
             onClick={() => {
               sounds.playSelect();
               setP1Char('vareta');
-              if (selectedMode !== 'training') setP2Char('caito');
+              if (p2Char === 'vareta') setP2Char('caito');
             }}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">
-                  EL TERROR DEL CALLEJÓN
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-bold font-arcade tracking-wide text-neutral-100">
-                  VARETA
-                </h2>
+            <div>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest">
+                    EL TERROR DEL CALLEJÓN
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-bold font-arcade tracking-wide text-neutral-100">
+                    VARETA
+                  </h2>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  {p1Char === 'vareta' && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-arcade tracking-wider bg-amber-500 text-black">
+                      1P JUGADOR
+                    </span>
+                  )}
+                  {p2Char === 'vareta' && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-arcade tracking-wider bg-red-600 text-white">
+                      2P / CPU
+                    </span>
+                  )}
+                </div>
               </div>
-              <span className={`px-2.5 py-1 rounded text-xs font-bold font-arcade tracking-wider ${
-                p1Char === 'vareta' ? 'bg-amber-500 text-black' : 'bg-neutral-800 text-neutral-400'
-              }`}>
-                {p1Char === 'vareta' ? 'JUGADOR 1' : 'ELEGIR'}
-              </span>
+
+              <p className="text-xs text-neutral-400 mt-2 line-clamp-2">
+                Indumentaria oscura con gabardina y botella en mano. Golpes pesados a corta distancia y vómito químico tóxico.
+              </p>
             </div>
 
-            <p className="text-xs text-neutral-400 mt-2 line-clamp-2">
-              Indumentaria oscura con gabardina y botella en mano. Golpes pesados a corta distancia y un letal ataque especial de vómito químico que inunda el asfalto.
-            </p>
-
-            {/* Character Stats & Attack Summary */}
-            <div className="mt-4 pt-3 border-t border-neutral-800/80 space-y-2">
+            <div className="mt-3 pt-3 border-t border-neutral-800/80 space-y-1.5">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-400">Poder de Ataque:</span>
+                <span className="text-neutral-400">Ataque:</span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <div key={s} className={`w-2.5 h-1.5 rounded-sm ${s <= 4 ? 'bg-red-500' : 'bg-neutral-800'}`} />
@@ -154,7 +167,7 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
                 </div>
               </div>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-400">Velocidad de Movimiento:</span>
+                <span className="text-neutral-400">Velocidad:</span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <div key={s} className={`w-2.5 h-1.5 rounded-sm ${s <= 3 ? 'bg-amber-400' : 'bg-neutral-800'}`} />
@@ -162,49 +175,79 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
                 </div>
               </div>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-400">Poder Especial:</span>
+                <span className="text-neutral-400">Poder:</span>
                 <span className="text-green-400 font-bold">Vómito Tóxico</span>
               </div>
+
+              {/* Set as Opponent Button */}
+              {p1Char !== 'vareta' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    sounds.playSelect();
+                    setP2Char('vareta');
+                  }}
+                  className={`w-full mt-2 py-1 rounded text-[10px] font-bold font-arcade transition-colors ${
+                    p2Char === 'vareta'
+                      ? 'bg-red-600/30 text-red-300 border border-red-500/50'
+                      : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
+                  }`}
+                >
+                  {p2Char === 'vareta' ? '✓ OPONENTE SELECCIONADO' : 'ELEGIR COMO OPONENTE'}
+                </button>
+              )}
             </div>
           </div>
 
           {/* CAÍTO CARD */}
           <div 
-            className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden ${
+            id="card-char-caito"
+            className={`relative p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col justify-between ${
               p1Char === 'caito'
-                ? 'border-emerald-400 bg-neutral-900/90 shadow-[0_0_25px_rgba(52,211,153,0.25)]'
+                ? 'border-emerald-400 bg-neutral-900/95 shadow-[0_0_25px_rgba(52,211,153,0.25)]'
+                : p2Char === 'caito'
+                ? 'border-red-500/80 bg-neutral-900/80'
                 : 'border-neutral-800 bg-neutral-950/80 hover:border-neutral-700'
             }`}
             onClick={() => {
               sounds.playSelect();
               setP1Char('caito');
-              if (selectedMode !== 'training') setP2Char('vareta');
+              if (p2Char === 'caito') setP2Char('vareta');
             }}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
-                  EL GUERRERO DEL ASFALTO
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-bold font-arcade tracking-wide text-neutral-100">
-                  CAÍTO
-                </h2>
+            <div>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">
+                    EL GUERRERO DEL ASFALTO
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-bold font-arcade tracking-wide text-neutral-100">
+                    CAÍTO
+                  </h2>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  {p1Char === 'caito' && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-arcade tracking-wider bg-emerald-500 text-black">
+                      1P JUGADOR
+                    </span>
+                  )}
+                  {p2Char === 'caito' && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-arcade tracking-wider bg-red-600 text-white">
+                      2P / CPU
+                    </span>
+                  )}
+                </div>
               </div>
-              <span className={`px-2.5 py-1 rounded text-xs font-bold font-arcade tracking-wider ${
-                p1Char === 'caito' ? 'bg-emerald-500 text-black' : 'bg-neutral-800 text-neutral-400'
-              }`}>
-                {p1Char === 'caito' ? 'JUGADOR 1' : 'ELEGIR'}
-              </span>
+
+              <p className="text-xs text-neutral-400 mt-2 line-clamp-2">
+                Musculoso con remera ZZ verde y ojos amarillos radiantes. Combates ágiles, patadas acrobáticas y cañón de energía solar.
+              </p>
             </div>
 
-            <p className="text-xs text-neutral-400 mt-2 line-clamp-2">
-              Musculoso con remera ZZ verde, rizos oscuros y ojos amarillos radiantes. Combates ágiles, patadas aéreas acrobáticas y un cañón solar de energía ki.
-            </p>
-
-            {/* Character Stats & Attack Summary */}
-            <div className="mt-4 pt-3 border-t border-neutral-800/80 space-y-2">
+            <div className="mt-3 pt-3 border-t border-neutral-800/80 space-y-1.5">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-400">Poder de Ataque:</span>
+                <span className="text-neutral-400">Ataque:</span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <div key={s} className={`w-2.5 h-1.5 rounded-sm ${s <= 4 ? 'bg-red-500' : 'bg-neutral-800'}`} />
@@ -212,7 +255,7 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
                 </div>
               </div>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-400">Velocidad de Movimiento:</span>
+                <span className="text-neutral-400">Velocidad:</span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <div key={s} className={`w-2.5 h-1.5 rounded-sm ${s <= 4 ? 'bg-amber-400' : 'bg-neutral-800'}`} />
@@ -220,9 +263,116 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
                 </div>
               </div>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-400">Poder Especial:</span>
+                <span className="text-neutral-400">Poder:</span>
                 <span className="text-yellow-400 font-bold">Destello Dorado</span>
               </div>
+
+              {/* Set as Opponent Button */}
+              {p1Char !== 'caito' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    sounds.playSelect();
+                    setP2Char('caito');
+                  }}
+                  className={`w-full mt-2 py-1 rounded text-[10px] font-bold font-arcade transition-colors ${
+                    p2Char === 'caito'
+                      ? 'bg-red-600/30 text-red-300 border border-red-500/50'
+                      : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
+                  }`}
+                >
+                  {p2Char === 'caito' ? '✓ OPONENTE SELECCIONADO' : 'ELEGIR COMO OPONENTE'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* DOCTOR TELMO CARD */}
+          <div 
+            id="card-char-telmo"
+            className={`relative p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col justify-between ${
+              p1Char === 'telmo'
+                ? 'border-sky-400 bg-neutral-900/95 shadow-[0_0_25px_rgba(56,189,248,0.25)]'
+                : p2Char === 'telmo'
+                ? 'border-red-500/80 bg-neutral-900/80'
+                : 'border-neutral-800 bg-neutral-950/80 hover:border-neutral-700'
+            }`}
+            onClick={() => {
+              sounds.playSelect();
+              setP1Char('telmo');
+              if (p2Char === 'telmo') setP2Char('caito');
+            }}
+          >
+            <div>
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-sky-400 uppercase tracking-widest">
+                    EL MÉDICO COMBATIENTE
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-bold font-arcade tracking-wide text-neutral-100">
+                    DR. TELMO
+                  </h2>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  {p1Char === 'telmo' && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-arcade tracking-wider bg-sky-500 text-black">
+                      1P JUGADOR
+                    </span>
+                  )}
+                  {p2Char === 'telmo' && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-arcade tracking-wider bg-red-600 text-white">
+                      2P / CPU
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-xs text-neutral-400 mt-2 line-clamp-2">
+                Guardapolvo médico y ambo celeste. Golpes quirúrgicos veloces, jeringas de precisión y lanzamiento de blister de píldoras explosivas.
+              </p>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-neutral-800/80 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-neutral-400">Ataque:</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <div key={s} className={`w-2.5 h-1.5 rounded-sm ${s <= 4 ? 'bg-red-500' : 'bg-neutral-800'}`} />
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-neutral-400">Velocidad:</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <div key={s} className={`w-2.5 h-1.5 rounded-sm ${s <= 4 ? 'bg-amber-400' : 'bg-neutral-800'}`} />
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-neutral-400">Poder:</span>
+                <span className="text-sky-400 font-bold">Blíster de Píldoras</span>
+              </div>
+
+              {/* Set as Opponent Button */}
+              {p1Char !== 'telmo' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    sounds.playSelect();
+                    setP2Char('telmo');
+                  }}
+                  className={`w-full mt-2 py-1 rounded text-[10px] font-bold font-arcade transition-colors ${
+                    p2Char === 'telmo'
+                      ? 'bg-red-600/30 text-red-300 border border-red-500/50'
+                      : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
+                  }`}
+                >
+                  {p2Char === 'telmo' ? '✓ OPONENTE SELECCIONADO' : 'ELEGIR COMO OPONENTE'}
+                </button>
+              )}
             </div>
           </div>
         </div>

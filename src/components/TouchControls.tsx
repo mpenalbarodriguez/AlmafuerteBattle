@@ -249,64 +249,64 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
           </div>
 
           {/* Right: Doubled Action Buttons (Piña, Pata, Bloqueo, Salto, Poder) */}
-          <div className="grid grid-cols-3 gap-2.5 items-center shrink-0">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3 items-center shrink-0">
             {/* Piña (Golpe / Punch) - Blue */}
             <button
               id="touch-btn-punch-portrait"
               {...bindButton('punch')}
-              className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-blue-600 active:bg-blue-400 border-2 border-blue-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
+              className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-2xl bg-blue-600 active:bg-blue-400 border-2 border-blue-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
               title="Golpe de Puño"
             >
-              <Flame className="w-5 h-5 mb-0.5 text-blue-200" />
-              <span className="text-xs leading-none">PIÑA</span>
+              <Flame className="w-6 h-6 mb-0.5 text-blue-200" />
+              <span className="text-xs leading-none font-bold">PIÑA</span>
             </button>
 
             {/* Pata (Patada / Kick) - Red */}
             <button
               id="touch-btn-kick-portrait"
               {...bindButton('kick')}
-              className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-red-600 active:bg-red-400 border-2 border-red-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
+              className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-2xl bg-red-600 active:bg-red-400 border-2 border-red-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
               title="Patada"
             >
-              <span className="text-base font-black mb-0.5">💥</span>
-              <span className="text-xs leading-none">PATA</span>
+              <span className="text-xl font-black mb-0.5">💥</span>
+              <span className="text-xs leading-none font-bold">PATA</span>
             </button>
 
-            {/* Bloqueo (Block Guard - NEW!) - Cyan */}
+            {/* Bloqueo (Block Guard) - Cyan */}
             <button
               id="touch-btn-block-portrait"
               {...bindButton('block')}
-              className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-cyan-700 active:bg-cyan-500 border-2 border-cyan-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
+              className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-2xl bg-cyan-700 active:bg-cyan-500 border-2 border-cyan-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
               title="Bloqueo Defensivo"
             >
-              <Shield className="w-5 h-5 mb-0.5 text-cyan-200" />
-              <span className="text-xs leading-none">BLOQUEO</span>
+              <Shield className="w-6 h-6 mb-0.5 text-cyan-200" />
+              <span className="text-xs leading-none font-bold">BLOQUEO</span>
             </button>
 
             {/* Salto - Emerald */}
             <button
               id="touch-btn-jump-portrait"
               {...bindButton('up')}
-              className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-emerald-600 active:bg-emerald-400 border-2 border-emerald-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
+              className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-2xl bg-emerald-600 active:bg-emerald-400 border-2 border-emerald-400 active:scale-95 text-white font-arcade text-xl font-bold shadow-lg flex flex-col items-center justify-center transition-transform"
               title="Saltar"
             >
-              <ChevronUp className="w-6 h-6 -mb-1 text-emerald-100" />
-              <span className="text-xs leading-none">SALTO</span>
+              <ChevronUp className="w-7 h-7 -mb-1 text-emerald-100" />
+              <span className="text-xs leading-none font-bold">SALTO</span>
             </button>
 
             {/* Poder Especial - Amber Gold (Colspan 2 for prominent trigger) */}
             <button
               id="touch-btn-special-portrait"
               {...bindButton('special')}
-              className={`col-span-2 h-18 sm:h-20 rounded-2xl border-2 active:scale-95 font-arcade text-lg font-bold shadow-xl flex items-center justify-center gap-2 transition-transform ${
+              className={`col-span-2 h-[74px] sm:h-[86px] rounded-2xl border-2 active:scale-95 font-arcade text-lg font-bold shadow-xl flex items-center justify-center gap-2 transition-transform ${
                 canSpecial 
                   ? 'bg-gradient-to-r from-amber-500 to-yellow-400 border-amber-200 text-black animate-pulse shadow-[0_0_20px_#f59e0b]' 
                   : 'bg-neutral-900 border-neutral-700 text-neutral-500'
               }`}
               title="Poder Especial (Gasta 25% Barra)"
             >
-              <Zap className={`w-6 h-6 ${canSpecial ? 'text-black' : 'text-neutral-600'}`} />
-              <span className="text-sm font-bold tracking-wider">PODER ESPECIAL</span>
+              <Zap className={`w-7 h-7 ${canSpecial ? 'text-black' : 'text-neutral-600'}`} />
+              <span className="text-base font-bold tracking-wider">PODER ESPECIAL</span>
             </button>
           </div>
         </div>
@@ -322,70 +322,70 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     >
       {/* Left Bottom: Virtual Joystick (Palanca) */}
       <div className="pointer-events-auto bg-neutral-950/70 p-2.5 rounded-3xl backdrop-blur-sm border border-white/15 shadow-2xl flex flex-col items-center">
-        <VirtualJoystick onDirectionChange={handleJoystickDirections} size={140} />
+        <VirtualJoystick onDirectionChange={handleJoystickDirections} size={145} />
         <span className="text-[10px] text-amber-400 font-mono mt-1 font-bold tracking-widest">PALANCA</span>
       </div>
 
       {/* Right Bottom: Doubled Action Buttons Cluster */}
       <div className="pointer-events-auto bg-neutral-950/70 p-3 rounded-3xl backdrop-blur-sm border border-white/15 shadow-2xl">
-        <div className="flex items-center gap-3">
-          {/* Bloqueo Button (NEW!) */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5">
+          {/* Bloqueo Button */}
           <button
             id="touch-landscape-block"
             {...bindButton('block')}
-            className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-cyan-700 active:bg-cyan-500 border-2 border-cyan-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
+            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-cyan-700 active:bg-cyan-500 border-2 border-cyan-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
             title="Bloqueo Defensivo"
           >
-            <Shield className="w-5 h-5 mb-0.5 text-cyan-200" />
-            <span>BLOQUEO</span>
+            <Shield className="w-6 h-6 mb-0.5 text-cyan-200" />
+            <span className="font-bold">BLOQUEO</span>
           </button>
 
           {/* Punch Button (PIÑA) */}
           <button
             id="touch-landscape-punch"
             {...bindButton('punch')}
-            className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-blue-600 active:bg-blue-400 border-2 border-blue-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
+            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-blue-600 active:bg-blue-400 border-2 border-blue-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
             title="Golpe"
           >
-            <Flame className="w-5 h-5 mb-0.5 text-blue-200" />
-            <span>PIÑA</span>
+            <Flame className="w-6 h-6 mb-0.5 text-blue-200" />
+            <span className="font-bold">PIÑA</span>
           </button>
 
           {/* Kick Button (PATADA) */}
           <button
             id="touch-landscape-kick"
             {...bindButton('kick')}
-            className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-red-600 active:bg-red-400 border-2 border-red-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
+            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-red-600 active:bg-red-400 border-2 border-red-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
             title="Patada"
           >
-            <span className="text-base leading-none mb-0.5">💥</span>
-            <span>PATA</span>
+            <span className="text-xl leading-none mb-0.5">💥</span>
+            <span className="font-bold">PATA</span>
           </button>
 
           {/* Salto Button */}
           <button
             id="touch-landscape-jump"
             {...bindButton('up')}
-            className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-600 active:bg-emerald-400 border-2 border-emerald-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
+            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-emerald-600 active:bg-emerald-400 border-2 border-emerald-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
             title="Salto"
           >
-            <ChevronUp className="w-6 h-6 -mb-1 text-emerald-100" />
-            <span>SALTO</span>
+            <ChevronUp className="w-7 h-7 -mb-1 text-emerald-100" />
+            <span className="font-bold">SALTO</span>
           </button>
 
           {/* Special Blast Button */}
           <button
             id="touch-landscape-special"
             {...bindButton('special')}
-            className={`w-20 h-20 sm:w-22 sm:h-22 rounded-full border-2 active:scale-90 font-arcade text-xs font-bold shadow-2xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs ${
+            className={`w-[84px] h-[84px] sm:w-[96px] sm:h-[96px] rounded-full border-2 active:scale-90 font-arcade text-xs font-bold shadow-2xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs ${
               canSpecial 
                 ? 'bg-gradient-to-b from-amber-400 to-amber-600 border-amber-200 text-black animate-pulse shadow-[0_0_20px_#f59e0b]' 
                 : 'bg-neutral-900 border-neutral-700 text-neutral-500'
             }`}
             title="Poder Especial"
           >
-            <Zap className={`w-6 h-6 ${canSpecial ? 'text-black' : 'text-neutral-600'}`} />
-            <span>PODER</span>
+            <Zap className={`w-7 h-7 ${canSpecial ? 'text-black' : 'text-neutral-600'}`} />
+            <span className="font-bold">PODER</span>
           </button>
         </div>
       </div>

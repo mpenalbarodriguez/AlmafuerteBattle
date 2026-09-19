@@ -35,9 +35,9 @@ export class AIController {
       'punch', 'kick', 'air_punch', 'air_kick', 'special_prep', 'special_blast'
     ].includes(player.state);
 
-    // Difficulty settings
-    const blockChance = difficulty === 'facil' ? 0.2 : difficulty === 'normal' ? 0.55 : 0.88;
-    const aggression = difficulty === 'facil' ? 0.4 : difficulty === 'normal' ? 0.7 : 0.95;
+    // Difficulty settings (balanced for smooth, fun combat)
+    const blockChance = difficulty === 'facil' ? 0.08 : difficulty === 'normal' ? 0.32 : 0.62;
+    const aggression = difficulty === 'facil' ? 0.28 : difficulty === 'normal' ? 0.48 : 0.72;
 
     // React to incoming attacks with blocking
     if (playerIsAttacking && dist < 160 && Math.random() < blockChance) {

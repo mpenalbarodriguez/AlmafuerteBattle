@@ -271,6 +271,34 @@ class SoundEngine {
     }
   }
 
+  // Doctor Telmo's special: Medicine Blister Throw & Scatter
+  public playPillBlast() {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.initCtx();
+      const now = ctx.currentTime;
+
+      // Sparkling medical chime / whoosh
+      for (let i = 0; i < 4; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520 + i * 220, now + i * 0.06);
+        osc.frequency.exponentialRampToValueAtTime(880 + i * 160, now + i * 0.06 + 0.2);
+
+        gain.gain.setValueAtTime(0.2, now + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.25);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.06);
+        osc.stop(now + i * 0.06 + 0.26);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   // Jump grunt / whoosh
   public playJump() {
     if (this.isMuted) return;

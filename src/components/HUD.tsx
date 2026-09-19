@@ -11,7 +11,9 @@ import {
   Gamepad2, 
   Maximize2, 
   Minimize2, 
-  ArrowLeft 
+  ArrowLeft,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 
 interface HUDProps {
@@ -33,6 +35,10 @@ interface HUDProps {
   onToggleTouchControls?: () => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  zoomLevel?: number;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onResetZoom?: () => void;
 }
 
 export const HUD: React.FC<HUDProps> = ({
@@ -53,7 +59,11 @@ export const HUD: React.FC<HUDProps> = ({
   showTouchControls,
   onToggleTouchControls,
   isFullscreen,
-  onToggleFullscreen
+  onToggleFullscreen,
+  zoomLevel = 1.0,
+  onZoomIn,
+  onZoomOut,
+  onResetZoom
 }) => {
   const f1HealthPercent = Math.max(0, Math.min(100, (f1.health / f1.maxHealth) * 100));
   const f1DisplayPercent = Math.max(0, Math.min(100, (f1.displayHealth / f1.maxHealth) * 100));
@@ -86,6 +96,35 @@ export const HUD: React.FC<HUDProps> = ({
         </div>
 
         <div className="flex items-center gap-1 bg-neutral-900/90 p-1 rounded-lg border border-neutral-800 shadow-lg">
+          {/* Manual Zoom Controls for Samsung J7 and small screens */}
+          {onZoomIn && onZoomOut && (
+            <div className="flex items-center bg-neutral-950/80 border border-neutral-700/60 rounded px-1 py-0.5 gap-0.5 mr-0.5">
+              <button
+                id="hud-zoom-out-btn"
+                onClick={onZoomOut}
+                className="p-1 rounded hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 active:scale-95 transition-all"
+                title="Alejar pantalla / Ajustar Zoom (-)"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </button>
+              <button
+                id="hud-zoom-reset-btn"
+                onClick={onResetZoom}
+                className="px-1 text-[10px] font-mono font-bold text-amber-400 hover:text-white"
+                title="Restablecer Zoom al 100%"
+              >
+                {Math.round(zoomLevel * 100)}%
+              </button>
+              <button
+                id="hud-zoom-in-btn"
+                onClick={onZoomIn}
+                className="p-1 rounded hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 active:scale-95 transition-all"
+                title="Acercar pantalla / Ajustar Zoom (+)"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           {onToggleTouchControls && (
             <button
               id="toggle-touch-btn"

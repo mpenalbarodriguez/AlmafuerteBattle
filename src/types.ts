@@ -1,4 +1,4 @@
-export type CharacterId = 'vareta' | 'caito';
+export type CharacterId = 'vareta' | 'caito' | 'telmo';
 
 export type AnimationState = 
   | 'idle'
@@ -83,7 +83,7 @@ export interface Projectile {
   life: number;
   maxLife: number;
   damage: number;
-  type: 'vomit' | 'ki_blast';
+  type: 'vomit' | 'ki_blast' | 'pills';
   hitCount: number;
   maxHits: number;
 }

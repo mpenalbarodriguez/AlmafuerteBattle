@@ -37,6 +37,7 @@ interface FightArenaProps {
   difficulty: AIDifficulty;
   varetaSprites: CharacterSprites;
   caitoSprites: CharacterSprites;
+  telmoSprites: CharacterSprites;
   onOpenSprites: () => void;
   onOpenControls: () => void;
   onExitToMenu: () => void;
@@ -49,6 +50,7 @@ export const FightArena: React.FC<FightArenaProps> = ({
   difficulty,
   varetaSprites,
   caitoSprites,
+  telmoSprites,
   onOpenSprites,
   onOpenControls,
   onExitToMenu
@@ -78,9 +80,40 @@ export const FightArena: React.FC<FightArenaProps> = ({
     return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 1024;
   });
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('almafuerte_zoom');
+      return saved ? parseFloat(saved) : 1.0;
+    } catch {
+      return 1.0;
+    }
+  });
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => {
+      const next = Math.min(1.30, Math.round((prev + 0.05) * 100) / 100);
+      try { localStorage.setItem('almafuerte_zoom', next.toString()); } catch {}
+      return next;
+    });
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => {
+      const next = Math.max(0.65, Math.round((prev - 0.05) * 100) / 100);
+      try { localStorage.setItem('almafuerte_zoom', next.toString()); } catch {}
+      return next;
+    });
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(1.0);
+    try { localStorage.setItem('almafuerte_zoom', '1.0'); } catch {}
+  };
 
   useEffect(() => {
     const checkOrientation = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
       const portrait = window.innerHeight > window.innerWidth && window.innerWidth < 800;
       setIsPortrait(portrait);
       setIsFullscreen(!!document.fullscreenElement);
@@ -166,11 +199,20 @@ export const FightArena: React.FC<FightArenaProps> = ({
       if (code === 'KeyK' || code === 'KeyG') p1ControlsRef.current.kick = true;
       if (code === 'KeyL' || code === 'KeyH') p1ControlsRef.current.special = true;
 
-      // P2 Controls: Arrow Keys + Num 1/2/3/0 or U/I/O/Y
-      if (code === 'ArrowLeft') p2ControlsRef.current.left = true;
-      if (code === 'ArrowRight') p2ControlsRef.current.right = true;
-      if (code === 'ArrowUp') p2ControlsRef.current.up = true;
-      if (code === 'ArrowDown') p2ControlsRef.current.down = true;
+      // In single player modes, Arrow keys also control P1 movement
+      if (gameMode !== 'vs_player') {
+        if (code === 'ArrowLeft') p1ControlsRef.current.left = true;
+        if (code === 'ArrowRight') p1ControlsRef.current.right = true;
+        if (code === 'ArrowUp') p1ControlsRef.current.up = true;
+        if (code === 'ArrowDown') p1ControlsRef.current.down = true;
+      } else {
+        // P2 Controls (2-player local mode)
+        if (code === 'ArrowLeft') p2ControlsRef.current.left = true;
+        if (code === 'ArrowRight') p2ControlsRef.current.right = true;
+        if (code === 'ArrowUp') p2ControlsRef.current.up = true;
+        if (code === 'ArrowDown') p2ControlsRef.current.down = true;
+      }
+
       if (code === 'Numpad0' || code === 'KeyY') p2ControlsRef.current.block = true;
       if (code === 'Numpad1' || code === 'KeyU') p2ControlsRef.current.punch = true;
       if (code === 'Numpad2' || code === 'KeyI') p2ControlsRef.current.kick = true;
@@ -188,10 +230,18 @@ export const FightArena: React.FC<FightArenaProps> = ({
       if (code === 'KeyK' || code === 'KeyG') p1ControlsRef.current.kick = false;
       if (code === 'KeyL' || code === 'KeyH') p1ControlsRef.current.special = false;
 
-      if (code === 'ArrowLeft') p2ControlsRef.current.left = false;
-      if (code === 'ArrowRight') p2ControlsRef.current.right = false;
-      if (code === 'ArrowUp') p2ControlsRef.current.up = false;
-      if (code === 'ArrowDown') p2ControlsRef.current.down = false;
+      if (gameMode !== 'vs_player') {
+        if (code === 'ArrowLeft') p1ControlsRef.current.left = false;
+        if (code === 'ArrowRight') p1ControlsRef.current.right = false;
+        if (code === 'ArrowUp') p1ControlsRef.current.up = false;
+        if (code === 'ArrowDown') p1ControlsRef.current.down = false;
+      } else {
+        if (code === 'ArrowLeft') p2ControlsRef.current.left = false;
+        if (code === 'ArrowRight') p2ControlsRef.current.right = false;
+        if (code === 'ArrowUp') p2ControlsRef.current.up = false;
+        if (code === 'ArrowDown') p2ControlsRef.current.down = false;
+      }
+
       if (code === 'Numpad0' || code === 'KeyY') p2ControlsRef.current.block = false;
       if (code === 'Numpad1' || code === 'KeyU') p2ControlsRef.current.punch = false;
       if (code === 'Numpad2' || code === 'KeyI') p2ControlsRef.current.kick = false;
@@ -239,7 +289,7 @@ export const FightArena: React.FC<FightArenaProps> = ({
 
   // Helper to pick the correct sprite from the 12 rows
   const getFighterSprite = (fighter: Fighter): SlicedSprite => {
-    const sprites = fighter.id === 'vareta' ? varetaSprites : caitoSprites;
+    const sprites = fighter.id === 'vareta' ? varetaSprites : fighter.id === 'caito' ? caitoSprites : telmoSprites;
     const f = fighter.facing;
 
     // Row 11: Defeated state (stays on the floor)
@@ -456,7 +506,7 @@ export const FightArena: React.FC<FightArenaProps> = ({
       // Draw Projectiles
       projectilesRef.current.forEach((p) => {
         ctx.save();
-        const pSprites = p.ownerId === 'vareta' ? varetaSprites : caitoSprites;
+        const pSprites = p.ownerId === 'vareta' ? varetaSprites : p.ownerId === 'caito' ? caitoSprites : telmoSprites;
         const projSprite = pSprites.projectileSprite;
 
         if (projSprite && projSprite.width > 5) {
@@ -484,6 +534,30 @@ export const FightArena: React.FC<FightArenaProps> = ({
           ctx.beginPath();
           ctx.ellipse(p.x + (p.facing === 1 ? p.width / 2 : -p.width / 2), p.y + p.height / 2, p.width / 2, p.height / 2, 0, 0, Math.PI * 2);
           ctx.fill();
+        } else if (p.type === 'pills') {
+          // Doctor Telmo's Blister Pack of Medical Capsules
+          const bx = p.facing === 1 ? p.x : p.x - p.width;
+          ctx.fillStyle = '#f8fafc';
+          ctx.strokeStyle = '#0284c7';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(bx, p.y, p.width, p.height, 6);
+          } else {
+            ctx.rect(bx, p.y, p.width, p.height);
+          }
+          ctx.fill();
+          ctx.stroke();
+
+          // Draw medical cross in center
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(bx + p.width / 2 - 2, p.y + 4, 4, p.height - 8);
+          ctx.fillRect(bx + 4, p.y + p.height / 2 - 2, p.width - 8, 4);
+
+          // Glowing aura
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.lineWidth = 4;
+          ctx.stroke();
         } else {
           // Caíto's Golden Ki Beam
           const grad = ctx.createLinearGradient(p.x, p.y, p.x + (p.facing === 1 ? p.width : -p.width), p.y);
@@ -555,7 +629,7 @@ export const FightArena: React.FC<FightArenaProps> = ({
 
     animationId = requestAnimationFrame(gameLoop);
     return () => cancelAnimationFrame(animationId);
-  }, [matchPhase, f1, f2, difficulty, gameMode, varetaSprites, caitoSprites]);
+  }, [matchPhase, f1, f2, difficulty, gameMode, varetaSprites, caitoSprites, telmoSprites]);
 
   // Handle Round/Match Over
   const handleRoundOver = (reason: 'f1_wins' | 'f2_wins' | 'timeout') => {
@@ -630,10 +704,18 @@ export const FightArena: React.FC<FightArenaProps> = ({
     return (
       <div 
         ref={containerRef}
-        className="relative w-full h-full flex flex-col justify-between bg-neutral-950 overflow-hidden select-none"
+        style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+        className="relative w-full max-h-[100dvh] flex flex-col justify-between bg-neutral-950 overflow-hidden select-none"
       >
         {/* Top 16:9 Combat Viewport */}
-        <div className="relative w-full aspect-[1000/560] shadow-2xl bg-neutral-950 border-b border-neutral-800 shrink-0">
+        <div 
+          style={{
+            transform: zoomLevel !== 1 ? `scale(${zoomLevel})` : undefined,
+            transformOrigin: 'top center',
+            transition: 'transform 0.15s ease-out'
+          }}
+          className="relative w-full aspect-[1000/560] shadow-2xl bg-neutral-950 border-b border-neutral-800 shrink-0"
+        >
           <canvas
             id="fight-canvas"
             ref={canvasRef}
@@ -665,6 +747,10 @@ export const FightArena: React.FC<FightArenaProps> = ({
             onToggleTouchControls={() => setShowTouchControls(p => !p)}
             isFullscreen={isFullscreen}
             onToggleFullscreen={toggleFullscreen}
+            zoomLevel={zoomLevel}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onResetZoom={handleResetZoom}
           />
         </div>
 
@@ -684,15 +770,19 @@ export const FightArena: React.FC<FightArenaProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden select-none"
+      style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+      className="relative w-full max-h-[100dvh] flex items-center justify-center bg-black overflow-hidden select-none"
     >
       {/* 16:9 Canvas container: dynamically clamped so it fits all mobile screens without overflow */}
       <div 
         style={{
-          width: 'min(100vw, calc(100vh * (1000 / 560)))',
-          height: 'min(100vh, calc(100vw * (560 / 1000)))',
+          width: 'min(100vw, calc(var(--vh, 1vh) * 100 * (1000 / 560)))',
+          height: 'min(calc(var(--vh, 1vh) * 100), calc(100vw * (560 / 1000)))',
           maxWidth: '1000px',
           maxHeight: '560px',
+          transform: zoomLevel !== 1 ? `scale(${zoomLevel})` : undefined,
+          transformOrigin: 'center center',
+          transition: 'transform 0.15s ease-out'
         }}
         className="relative aspect-[1000/560] shadow-2xl bg-neutral-950 border border-neutral-800 shrink-0"
       >
@@ -727,6 +817,10 @@ export const FightArena: React.FC<FightArenaProps> = ({
           onToggleTouchControls={() => setShowTouchControls(p => !p)}
           isFullscreen={isFullscreen}
           onToggleFullscreen={toggleFullscreen}
+          zoomLevel={zoomLevel}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onResetZoom={handleResetZoom}
         />
 
         {/* Virtual Touch Controls for Landscape Mobile */}

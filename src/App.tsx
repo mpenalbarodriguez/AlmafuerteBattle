@@ -32,6 +32,7 @@ export default function App() {
   // Sprite sheets
   const [varetaSprites, setVaretaSprites] = useState<CharacterSprites>(() => createFallbackSprites('vareta'));
   const [caitoSprites, setCaitoSprites] = useState<CharacterSprites>(() => createFallbackSprites('caito'));
+  const [telmoSprites, setTelmoSprites] = useState<CharacterSprites>(() => createFallbackSprites('telmo'));
 
   // Modals
   const [isSpritesModalOpen, setIsSpritesModalOpen] = useState(false);
@@ -107,6 +108,28 @@ export default function App() {
           img.src = caitoDataUrl;
         }
       }
+
+      // 3. Try static Doctor Telmo candidates first, otherwise check IndexedDB
+      const telmoCandidates = [
+        '/sprites/telmo.png',
+        '/sprites/sprites_telmo.png',
+        '/sprites_telmo.png',
+        '/telmo.png',
+        '/sprites/Telmo.png'
+      ];
+      const staticTelmo = await tryLoadStatic(telmoCandidates);
+      if (staticTelmo) {
+        setTelmoSprites(sliceSpriteSheet(staticTelmo));
+      } else {
+        const telmoDataUrl = await loadSpriteSheetDataUrl('telmo');
+        if (telmoDataUrl) {
+          const img = new Image();
+          img.onload = () => {
+            setTelmoSprites(sliceSpriteSheet(img));
+          };
+          img.src = telmoDataUrl;
+        }
+      }
     };
     loadSavedOrStatic();
   }, []);
@@ -130,7 +153,7 @@ export default function App() {
         for (let i = 0; i < e.dataTransfer.files.length; i++) {
           const file = e.dataTransfer.files[i];
           const lower = file.name.toLowerCase();
-          const targetChar: CharacterId = lower.includes('caito') ? 'caito' : 'vareta';
+          const targetChar: CharacterId = lower.includes('caito') ? 'caito' : lower.includes('telmo') ? 'telmo' : 'vareta';
 
           const reader = new FileReader();
           reader.onload = (ev) => {
@@ -142,8 +165,10 @@ export default function App() {
                 await saveSpriteSheetDataUrl(targetChar, dataUrl);
                 if (targetChar === 'vareta') {
                   setVaretaSprites(sliced);
-                } else {
+                } else if (targetChar === 'caito') {
                   setCaitoSprites(sliced);
+                } else {
+                  setTelmoSprites(sliced);
                 }
               };
               img.src = dataUrl;
@@ -177,8 +202,10 @@ export default function App() {
     await saveSpriteSheetDataUrl(charId, '');
     if (charId === 'vareta') {
       setVaretaSprites(createFallbackSprites('vareta'));
-    } else {
+    } else if (charId === 'caito') {
       setCaitoSprites(createFallbackSprites('caito'));
+    } else {
+      setTelmoSprites(createFallbackSprites('telmo'));
     }
   };
 
@@ -225,7 +252,7 @@ export default function App() {
               SUELTA AQUÍ TU HOJA DE SPRITES
             </h2>
             <p className="text-xs text-neutral-300">
-              Se detectará automáticamente si es Vareta o Caíto y se recortará según las 8 filas.
+              Se detectará automáticamente si es Vareta, Caíto o Doctor Telmo y se recortará según las 12 filas.
             </p>
           </div>
         </div>
@@ -239,6 +266,7 @@ export default function App() {
           onOpenControls={() => setIsControlsModalOpen(true)}
           varetaSprites={varetaSprites}
           caitoSprites={caitoSprites}
+          telmoSprites={telmoSprites}
         />
       ) : (
         <FightArena
@@ -248,6 +276,7 @@ export default function App() {
           difficulty={difficulty}
           varetaSprites={varetaSprites}
           caitoSprites={caitoSprites}
+          telmoSprites={telmoSprites}
           onOpenSprites={() => setIsSpritesModalOpen(true)}
           onOpenControls={() => setIsControlsModalOpen(true)}
           onExitToMenu={() => setView('select')}
@@ -260,10 +289,12 @@ export default function App() {
         onClose={() => setIsSpritesModalOpen(false)}
         onSpritesUpdated={(charId, sprites) => {
           if (charId === 'vareta') setVaretaSprites(sprites);
-          else setCaitoSprites(sprites);
+          else if (charId === 'caito') setCaitoSprites(sprites);
+          else setTelmoSprites(sprites);
         }}
         varetaSprites={varetaSprites}
         caitoSprites={caitoSprites}
+        telmoSprites={telmoSprites}
         onResetSprites={handleResetSprites}
       />
 

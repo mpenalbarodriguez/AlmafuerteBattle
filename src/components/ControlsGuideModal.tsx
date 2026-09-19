@@ -43,19 +43,19 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({ isOpen, 
               <ul className="space-y-2 text-xs">
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Moverse:</span>
-                  <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">A / D</span>
+                  <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">A / D ó ← / →</span>
                 </li>
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Saltar:</span>
-                  <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">W</span>
+                  <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">W ó ↑</span>
                 </li>
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Agacharse:</span>
-                  <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">S</span>
+                  <span className="font-mono bg-neutral-800 px-2 py-0.5 rounded text-white font-bold">S ó ↓</span>
                 </li>
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Bloqueo:</span>
-                  <span className="font-mono bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded text-cyan-300 font-bold">B ó Espacio (o atrás)</span>
+                  <span className="font-mono bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded text-cyan-300 font-bold">B ó Espacio (Botón Guardia)</span>
                 </li>
                 <li className="flex justify-between items-center py-1 border-b border-neutral-800/60">
                   <span className="text-neutral-400">Piña (Golpe):</span>
@@ -122,8 +122,8 @@ export const ControlsGuideModal: React.FC<ControlsGuideModalProps> = ({ isOpen, 
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-neutral-400">
               <div className="bg-neutral-900/50 p-2.5 rounded-lg border border-neutral-800">
-                <strong className="text-white block mb-1">🛡️ Bloqueo</strong>
-                Mantén la tecla hacia atrás mientras te atacan para reducir el daño un 80% y evitar el derribo.
+                <strong className="text-white block mb-1">🛡️ Guardia / Bloqueo</strong>
+                Presiona el botón de Guardia (o tecla B / Espacio) para bloquear y reducir el daño un 80%. La flecha hacia atrás te permite retroceder libremente.
               </div>
               <div className="bg-neutral-900/50 p-2.5 rounded-lg border border-neutral-800">
                 <strong className="text-white block mb-1">⚡ Barra de Poder</strong>

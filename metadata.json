@@ -1,6 +1,6 @@
 {
   "name": "Almafuerte Battle",
-  "description": "Juego de pelea callejero 2D en el callejón de Almafuerte. Combates intensos entre Vareta y Caíto con ataques especiales y combos.",
+  "description": "Juego de pelea callejero 2D en el callejón de Almafuerte. Combates intensos entre Vareta, Caíto y Doctor Telmo con ataques especiales y combos.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

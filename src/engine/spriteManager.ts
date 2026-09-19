@@ -659,7 +659,7 @@ export function createFallbackSprites(charId: CharacterId): CharacterSprites {
         ctx.arc(0, -75, 28, 0, Math.PI * 2);
         ctx.fill();
       }
-    } else {
+    } else if (charId === 'caito') {
       // Caíto: Green tank top, muscular build, glowing yellow eyes
       // Shadow
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
@@ -801,6 +801,178 @@ export function createFallbackSprites(charId: CharacterId): CharacterSprites {
         ctx.beginPath();
         ctx.arc(0, -75, 28, 0, Math.PI * 2);
         ctx.fill();
+      }
+    } else if (charId === 'telmo') {
+      // Doctor Telmo: Blue medical scrubs, open white doctor lab coat, stethoscope, smiling gray hair
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 24, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Black Dress / Medical Shoes
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-14, -12, 11, 12);
+      ctx.fillRect(4, -12, 11, 12);
+
+      // Light Blue Medical Scrubs (Pants)
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillRect(-13, -45, 10, 35);
+      ctx.fillRect(3, -45, 10, 35);
+
+      // White Doctor Lab Coat (Back Layer)
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.moveTo(-16, -96);
+      ctx.lineTo(16, -96);
+      ctx.lineTo(22, -30);
+      ctx.lineTo(-22, -30);
+      ctx.closePath();
+      ctx.fill();
+
+      // Blue Scrubs Shirt
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(-10, -92, 20, 50);
+
+      // Head
+      ctx.fillStyle = '#fbcfe8';
+      ctx.beginPath();
+      ctx.arc(0, -108, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Neat Gray / Silver Hair
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.arc(0, -112, 14, Math.PI * 0.8, Math.PI * 2.2);
+      ctx.fill();
+      ctx.fillRect(-8, -112, 16, 7);
+
+      // Warm Friendly Doctor Smile
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(2, -106, 4, 0.1, Math.PI * 0.9);
+      ctx.stroke();
+
+      // White Lab Coat Front Flaps
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-16, -95, 8, 62);
+      ctx.fillRect(8, -95, 8, 62);
+
+      // Stethoscope hanging around neck
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, -96, 7, 0, Math.PI);
+      ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.arc(4, -86, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Actions
+      if (action === 'idle') {
+        const bob = subframe === 1 ? -3 : 0;
+        ctx.translate(0, bob);
+        ctx.fillStyle = '#fbcfe8';
+        ctx.beginPath();
+        ctx.arc(12, -72, 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (action === 'punch') {
+        // Medical Syringe Jab attack
+        ctx.fillStyle = '#fbcfe8';
+        ctx.fillRect(10, -84, 30, 7);
+        // Syringe needle with cyan glow
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(40, -85, 14, 9);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(43, -83, 8, 5);
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(54, -80);
+        ctx.lineTo(66, -80);
+        ctx.stroke();
+        // Cyan medical energy burst
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+        ctx.beginPath();
+        ctx.arc(58, -80, 14, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (action === 'kick') {
+        // High Martial Doctor Kick
+        ctx.fillStyle = '#60a5fa';
+        ctx.save();
+        ctx.translate(5, -40);
+        ctx.rotate(-0.85);
+        ctx.fillRect(0, -5, 46, 12);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(42, -6, 12, 14);
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.beginPath();
+        ctx.arc(45, 0, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (action === 'special_prep') {
+        // Readying medicine blister pack with medical aura
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+        ctx.beginPath();
+        ctx.arc(0, -75, 46, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (action === 'special_blast') {
+        // Throwing Medicine Blister Pack
+        ctx.fillStyle = '#fbcfe8';
+        ctx.fillRect(8, -84, 25, 8);
+      } else if (action === 'victory') {
+        // Smiling proudly holding blister pack of pills
+        ctx.fillStyle = '#fbcfe8';
+        ctx.fillRect(10, -96, 8, 22);
+        // Blister pack
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(14, -108, 14, 20);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(16, -106, 4, 6);
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(22, -106, 4, 6);
+        ctx.fillStyle = '#eab308';
+        ctx.fillRect(16, -96, 4, 6);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(22, -96, 4, 6);
+      } else if (action === 'block') {
+        // Crossed-arms X doctor defensive block
+        ctx.fillStyle = '#fbcfe8';
+        ctx.fillRect(6, -88, 8, 24);
+        ctx.fillRect(14, -84, 8, 22);
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+        ctx.beginPath();
+        ctx.arc(15, -75, 20, -Math.PI / 2, Math.PI / 2);
+        ctx.fill();
+      } else if (action === 'hit') {
+        // Pain recoil holding stomach
+        ctx.translate(-10, 5);
+        ctx.rotate(-0.25);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(2, -96, 8, 6);
+      } else if (action === 'defeated') {
+        // Fallen horizontally on the ground
+        ctx.translate(-40, 20);
+        ctx.rotate(Math.PI / 2);
+      } else if (action === 'projectile') {
+        // Medicine Blister Pack projectile
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(-22, -88, 44, 26);
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-22, -88, 44, 26);
+        // 8 colorful pills
+        const pillColors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+        for (let r = 0; r < 2; r++) {
+          for (let col = 0; col < 4; col++) {
+            ctx.fillStyle = pillColors[(r * 4 + col) % pillColors.length];
+            ctx.beginPath();
+            ctx.ellipse(-16 + col * 10.5, -81 + r * 13, 3.8, 4.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
       }
     }
 

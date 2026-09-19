@@ -9,6 +9,7 @@ interface SpriteUploaderModalProps {
   onSpritesUpdated: (charId: CharacterId, sprites: CharacterSprites) => void;
   varetaSprites: CharacterSprites;
   caitoSprites: CharacterSprites;
+  telmoSprites: CharacterSprites;
   onResetSprites: (charId: CharacterId) => void;
 }
 
@@ -18,6 +19,7 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
   onSpritesUpdated,
   varetaSprites,
   caitoSprites,
+  telmoSprites,
   onResetSprites
 }) => {
   const [activeTab, setActiveTab] = useState<CharacterId>('vareta');
@@ -27,6 +29,7 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
 
   const fileInputVaretaRef = useRef<HTMLInputElement>(null);
   const fileInputCaitoRef = useRef<HTMLInputElement>(null);
+  const fileInputTelmoRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -75,6 +78,8 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
           handleFileProcess(file, 'vareta');
         } else if (lower.includes('caito')) {
           handleFileProcess(file, 'caito');
+        } else if (lower.includes('telmo')) {
+          handleFileProcess(file, 'telmo');
         } else {
           // Process for active tab
           handleFileProcess(file, activeTab);
@@ -83,7 +88,7 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
     }
   };
 
-  const currentSprites = activeTab === 'vareta' ? varetaSprites : caitoSprites;
+  const currentSprites = activeTab === 'vareta' ? varetaSprites : activeTab === 'caito' ? caitoSprites : telmoSprites;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -100,7 +105,7 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
               GESTOR DE HOJAS DE SPRITES
             </h2>
             <p className="text-xs text-neutral-400">
-              Carga tus archivos <span className="text-amber-300 font-mono">sprites_vareta.png</span> y <span className="text-amber-300 font-mono">sprites_caito.png</span>
+              Carga tus archivos <span className="text-amber-300 font-mono">sprites_vareta.png</span>, <span className="text-emerald-300 font-mono">sprites_caito.png</span> o <span className="text-sky-300 font-mono">sprites_telmo.png</span>
             </p>
           </div>
           <button 
@@ -117,24 +122,35 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
           <button
             id="tab-vareta-btn"
             onClick={() => setActiveTab('vareta')}
-            className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm tracking-wide transition-all ${
+            className={`flex-1 py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm tracking-wide transition-all ${
               activeTab === 'vareta'
                 ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
                 : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
             }`}
           >
-            Vareta {varetaSprites.rawImage ? '✓ (Cargado)' : '(Por defecto)'}
+            Vareta {varetaSprites.rawImage ? '✓' : '(Def)'}
           </button>
           <button
             id="tab-caito-btn"
             onClick={() => setActiveTab('caito')}
-            className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-sm tracking-wide transition-all ${
+            className={`flex-1 py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm tracking-wide transition-all ${
               activeTab === 'caito'
                 ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
                 : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
             }`}
           >
-            Caíto {caitoSprites.rawImage ? '✓ (Cargado)' : '(Por defecto)'}
+            Caíto {caitoSprites.rawImage ? '✓' : '(Def)'}
+          </button>
+          <button
+            id="tab-telmo-btn"
+            onClick={() => setActiveTab('telmo')}
+            className={`flex-1 py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm tracking-wide transition-all ${
+              activeTab === 'telmo'
+                ? 'bg-sky-500 text-black shadow-lg shadow-sky-500/20'
+                : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
+            }`}
+          >
+            Dr. Telmo {telmoSprites.rawImage ? '✓' : '(Def)'}
           </button>
         </div>
 
@@ -152,8 +168,10 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
           onClick={() => {
             if (activeTab === 'vareta') {
               fileInputVaretaRef.current?.click();
-            } else {
+            } else if (activeTab === 'caito') {
               fileInputCaitoRef.current?.click();
+            } else {
+              fileInputTelmoRef.current?.click();
             }
           }}
         >
@@ -175,16 +193,25 @@ export const SpriteUploaderModal: React.FC<SpriteUploaderModalProps> = ({
               if (e.target.files?.[0]) handleFileProcess(e.target.files[0], 'caito');
             }} 
           />
+          <input 
+            type="file" 
+            ref={fileInputTelmoRef} 
+            className="hidden" 
+            accept="image/png,image/jpeg,image/webp"
+            onChange={(e) => {
+              if (e.target.files?.[0]) handleFileProcess(e.target.files[0], 'telmo');
+            }} 
+          />
 
           <div className="w-12 h-12 rounded-full bg-neutral-800 group-hover:bg-amber-500/20 text-neutral-400 group-hover:text-amber-400 mx-auto flex items-center justify-center mb-3 transition-colors">
             <Upload className="w-6 h-6" />
           </div>
 
           <h3 className="font-bold text-neutral-200 mb-1">
-            Arrastra aquí la hoja de sprites de {activeTab === 'vareta' ? 'Vareta' : 'Caíto'}
+            Arrastra aquí la hoja de sprites de {activeTab === 'vareta' ? 'Vareta' : activeTab === 'caito' ? 'Caíto' : 'Doctor Telmo'}
           </h3>
           <p className="text-xs text-neutral-400 max-w-md mx-auto mb-3">
-            O haz clic para seleccionar tu archivo PNG desde tu equipo. Se recortará automáticamente según el formato de 12 filas (o 8 filas clásicas) con detección inteligente de franjas y remoción de fondo blanco.
+            O haz clic para seleccionar tu archivo PNG desde tu equipo. Se recortará automáticamente según el formato de 12 filas con detección inteligente de franjas y remoción de fondo blanco.
           </p>
 
           <span className="inline-block text-xs font-semibold px-3 py-1.5 rounded-full bg-neutral-800 text-amber-300 border border-neutral-700">
