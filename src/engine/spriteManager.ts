@@ -71,7 +71,7 @@ export function createEmptySprite(w = 120, h = 160): SlicedSprite {
  * Removes white background from a canvas by setting alpha to 0 for pixels where R,G,B > threshold.
  * If the image ALREADY has transparent pixels around the borders, it preserves it without stripping white details.
  */
-export function removeWhiteBackground(sourceCanvas: HTMLCanvasElement, threshold = 242): HTMLCanvasElement {
+export function removeWhiteBackground(sourceCanvas: HTMLCanvasElement, threshold = 238): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = sourceCanvas.width;
   canvas.height = sourceCanvas.height;
@@ -79,12 +79,14 @@ export function removeWhiteBackground(sourceCanvas: HTMLCanvasElement, threshold
   if (!ctx) return sourceCanvas;
 
   ctx.drawImage(sourceCanvas, 0, 0);
-  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const w = canvas.width;
+  const h = canvas.height;
+  if (w <= 0 || h <= 0) return canvas;
+
+  const imgData = ctx.getImageData(0, 0, w, h);
   const data = imgData.data;
 
   // Check if image already has transparent pixels at the corners or borders
-  const w = canvas.width;
-  const h = canvas.height;
   const sampleCorners = [
     0, // top-left
     (w - 1) * 4, // top-right
@@ -100,24 +102,97 @@ export function removeWhiteBackground(sourceCanvas: HTMLCanvasElement, threshold
   }
 
   // If at least 2 corners are already transparent, it's already an alpha-masked PNG!
-  // Don't erase white pixels from clothing, eyes, or effects!
   if (transparentCorners >= 2) {
     return canvas;
   }
 
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
+  // BFS Flood-fill from outer edges only:
+  // White lab coat, white eyes, white details inside the character are NOT connected
+  // to the canvas border, so their alpha stays 100% solid!
+  const visited = new Uint8Array(w * h);
+  const queueX = new Int32Array(w * h);
+  const queueY = new Int32Array(w * h);
+  let qHead = 0;
+  let qTail = 0;
 
-    // If near white, make transparent with smooth falloff
-    if (r > threshold && g > threshold && b > threshold) {
-      data[i + 3] = 0;
-    } else if (r > threshold - 20 && g > threshold - 20 && b > threshold - 20) {
-      // smooth antialias fringe
-      const avg = (r + g + b) / 3;
-      const factor = Math.max(0, 1 - (avg - (threshold - 20)) / 20);
-      data[i + 3] = Math.floor(data[i + 3] * factor);
+  const isBgPixel = (x: number, y: number): boolean => {
+    const idx = (y * w + x) * 4;
+    const r = data[idx];
+    const g = data[idx + 1];
+    const b = data[idx + 2];
+    const a = data[idx + 3];
+    if (a < 30) return true;
+    return r > threshold && g > threshold && b > threshold;
+  };
+
+  // Enqueue border pixels matching background
+  for (let x = 0; x < w; x++) {
+    if (isBgPixel(x, 0)) {
+      visited[x] = 1;
+      queueX[qTail] = x;
+      queueY[qTail] = 0;
+      qTail++;
+    }
+    const bY = h - 1;
+    const bIdx = bY * w + x;
+    if (!visited[bIdx] && isBgPixel(x, bY)) {
+      visited[bIdx] = 1;
+      queueX[qTail] = x;
+      queueY[qTail] = bY;
+      qTail++;
+    }
+  }
+
+  for (let y = 0; y < h; y++) {
+    const lIdx = y * w;
+    if (!visited[lIdx] && isBgPixel(0, y)) {
+      visited[lIdx] = 1;
+      queueX[qTail] = 0;
+      queueY[qTail] = y;
+      qTail++;
+    }
+    const rX = w - 1;
+    const rIdx = y * w + rX;
+    if (!visited[rIdx] && isBgPixel(rX, y)) {
+      visited[rIdx] = 1;
+      queueX[qTail] = rX;
+      queueY[qTail] = y;
+      qTail++;
+    }
+  }
+
+  // BFS
+  while (qHead < qTail) {
+    const cx = queueX[qHead];
+    const cy = queueY[qHead];
+    qHead++;
+
+    const neighbors = [
+      cx + 1, cy,
+      cx - 1, cy,
+      cx, cy + 1,
+      cx, cy - 1
+    ];
+
+    for (let i = 0; i < 8; i += 2) {
+      const nx = neighbors[i];
+      const ny = neighbors[i + 1];
+      if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+        const nIdx = ny * w + nx;
+        if (!visited[nIdx] && isBgPixel(nx, ny)) {
+          visited[nIdx] = 1;
+          queueX[qTail] = nx;
+          queueY[qTail] = ny;
+          qTail++;
+        }
+      }
+    }
+  }
+
+  // Clear alpha for all visited outer background pixels
+  for (let i = 0; i < w * h; i++) {
+    if (visited[i]) {
+      data[i * 4 + 3] = 0;
     }
   }
 
@@ -251,12 +326,21 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
     return { image: c, width: c.width, height: c.height };
   };
 
+  // Filter out short row label banner bands (height <= 32px) if sheet has text headers
+  let validBands = rawBands;
+  if (rawBands.length >= 16) {
+    const spriteBands = rawBands.filter(b => (b.maxY - b.minY) >= 34);
+    if (spriteBands.length >= 7) {
+      validBands = spriteBands;
+    }
+  }
+
   // Support 12 rows (new format with block, hurt, defeat, projectile) or legacy 8 rows
   let rowBands: Band[] = [];
-  if (rawBands.length >= 11 && rawBands.length <= 15) {
-    rowBands = rawBands.slice(0, 12);
-  } else if (rawBands.length >= 7 && rawBands.length <= 9) {
-    rowBands = rawBands.slice(0, 8);
+  if (validBands.length >= 11 && validBands.length <= 15) {
+    rowBands = validBands.slice(0, 12);
+  } else if (validBands.length >= 7 && validBands.length <= 9) {
+    rowBands = validBands.slice(0, 8);
   } else {
     // Default uniform division into 12 rows for current format
     const rowH = totalH / 12;
@@ -296,7 +380,7 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
         const g = data[idx + 1];
         const b = data[idx + 2];
         const a = data[idx + 3];
-        if (a > 20 && (r < 245 || g < 245 || b < 245)) {
+        if (a > 20 && (r < 240 || g < 240 || b < 240)) {
           colHasContent[x] = true;
           break;
         }
@@ -328,6 +412,46 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
       return colBands.map(cb => extractRect(cb.minX, band.minY, cb.maxX - cb.minX, bH));
     }
 
+    // Smart column mapping for varying sheets:
+    if (colBands.length > 0) {
+      if (expectedCount === 1) {
+        // If 1 sprite expected (e.g. victory, defeat, or projectile)
+        // For defeat (if multiple), the widest / last column is typically the body on the floor
+        const bestCol = colBands[colBands.length - 1];
+        return [extractRect(bestCol.minX, band.minY, bestCol.maxX - bestCol.minX, bH)];
+      }
+
+      if (expectedCount === 2) {
+        if (colBands.length === 1) {
+          const s = extractRect(colBands[0].minX, band.minY, colBands[0].maxX - colBands[0].minX, bH);
+          return [s, mirrorCanvas(s)];
+        }
+        return [
+          extractRect(colBands[0].minX, band.minY, colBands[0].maxX - colBands[0].minX, bH),
+          extractRect(colBands[1].minX, band.minY, colBands[1].maxX - colBands[1].minX, bH)
+        ];
+      }
+
+      if (expectedCount === 4) {
+        if (colBands.length === 3) {
+          // [Idle, Crouch, Jump] -> [Idle, Idle, Crouch, Jump]
+          const s0 = extractRect(colBands[0].minX, band.minY, colBands[0].maxX - colBands[0].minX, bH);
+          const s1 = extractRect(colBands[1].minX, band.minY, colBands[1].maxX - colBands[1].minX, bH);
+          const s2 = extractRect(colBands[2].minX, band.minY, colBands[2].maxX - colBands[2].minX, bH);
+          return [s0, s0, s1, s2];
+        }
+        if (colBands.length === 2) {
+          // [Punch, Kick] -> [Punch, Kick, Punch, Kick]
+          const s0 = extractRect(colBands[0].minX, band.minY, colBands[0].maxX - colBands[0].minX, bH);
+          const s1 = extractRect(colBands[1].minX, band.minY, colBands[1].maxX - colBands[1].minX, bH);
+          return [s0, s1, s0, s1];
+        }
+        if (colBands.length >= 4) {
+          return colBands.slice(0, 4).map(cb => extractRect(cb.minX, band.minY, cb.maxX - cb.minX, bH));
+        }
+      }
+    }
+
     // Otherwise slice uniformly across the active width
     const result: SlicedSprite[] = [];
     const minContentX = colBands.length > 0 ? colBands[0].minX : 0;
@@ -353,14 +477,20 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
 
   // Row 3: 4 sprites: Reverse order facing Left (Jump, Crouch, Idle2, Idle1)
   const r3Sprites = extractRowSprites(rowBands[2], 4);
-  const jumpLeft = r3Sprites[0] || createEmptySprite();
-  const crouchLeft = r3Sprites[1] || createEmptySprite();
-  const idleLeft = [r3Sprites[3] || createEmptySprite(), r3Sprites[2] || createEmptySprite()];
+  let jumpLeft = r3Sprites[0] || createEmptySprite();
+  let crouchLeft = r3Sprites[1] || createEmptySprite();
+  let idleLeft = [r3Sprites[3] || createEmptySprite(), r3Sprites[2] || createEmptySprite()];
+
+  // Ensure left sprites fallback to mirrored right sprites if row 3 is incomplete
+  if (jumpLeft.width <= 5) jumpLeft = mirrorCanvas(jumpRight);
+  if (crouchLeft.width <= 5) crouchLeft = mirrorCanvas(crouchRight);
+  if (idleLeft[0].width <= 5) idleLeft = [mirrorCanvas(idleRight[0]), mirrorCanvas(idleRight[1])];
 
   // Row 4: 4 sprites: 2 Walk Right, 2 Walk Left
   const r4Sprites = extractRowSprites(rowBands[3], 4);
   const walkRight = [r4Sprites[0] || createEmptySprite(), r4Sprites[1] || createEmptySprite()];
-  const walkLeft = [r4Sprites[2] || createEmptySprite(), r4Sprites[3] || createEmptySprite()];
+  let walkLeft = [r4Sprites[2] || createEmptySprite(), r4Sprites[3] || createEmptySprite()];
+  if (walkLeft[0].width <= 5) walkLeft = [mirrorCanvas(walkRight[0]), mirrorCanvas(walkRight[1])];
 
   // Row 5: 4 sprites: Punch, Kick, AirPunch, AirKick (Right)
   const r5Sprites = extractRowSprites(rowBands[4], 4);
@@ -371,10 +501,15 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
 
   // Row 6: 4 sprites: Reverse order facing Left (AirKick, AirPunch, Kick, Punch)
   const r6Sprites = extractRowSprites(rowBands[5], 4);
-  const airKickLeft = r6Sprites[0] || createEmptySprite();
-  const airPunchLeft = r6Sprites[1] || createEmptySprite();
-  const kickLeft = r6Sprites[2] || createEmptySprite();
-  const punchLeft = r6Sprites[3] || createEmptySprite();
+  let airKickLeft = r6Sprites[0] || createEmptySprite();
+  let airPunchLeft = r6Sprites[1] || createEmptySprite();
+  let kickLeft = r6Sprites[2] || createEmptySprite();
+  let punchLeft = r6Sprites[3] || createEmptySprite();
+
+  if (punchLeft.width <= 5) punchLeft = mirrorCanvas(punchRight);
+  if (kickLeft.width <= 5) kickLeft = mirrorCanvas(kickRight);
+  if (airPunchLeft.width <= 5) airPunchLeft = mirrorCanvas(airPunchRight);
+  if (airKickLeft.width <= 5) airKickLeft = mirrorCanvas(airKickRight);
 
   // Row 7: 2 sprites: Special Prep, Special Blast (Right)
   const r7Sprites = extractRowSprites(rowBands[6], 2);
@@ -383,8 +518,11 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
 
   // Row 8: 2 sprites: Reverse order facing Left (Special Blast, Special Prep)
   const r8Sprites = extractRowSprites(rowBands[7], 2);
-  const specialBlastLeft = r8Sprites[0] || createEmptySprite();
-  const specialPrepLeft = r8Sprites[1] || createEmptySprite();
+  let specialBlastLeft = r8Sprites[0] || createEmptySprite();
+  let specialPrepLeft = r8Sprites[1] || createEmptySprite();
+
+  if (specialPrepLeft.width <= 5) specialPrepLeft = mirrorCanvas(specialPrepRight);
+  if (specialBlastLeft.width <= 5) specialBlastLeft = mirrorCanvas(specialBlastRight);
 
   // Row 9: 2 sprites: Posición de bloqueo mirando a la derecha (idx 0) y a la izquierda (idx 1)
   let blockRight: SlicedSprite;
@@ -425,6 +563,9 @@ export function sliceSpriteSheet(image: HTMLImageElement): CharacterSprites {
   if (rowBands.length >= 11) {
     const r11Sprites = extractRowSprites(rowBands[10], 1);
     defeated = r11Sprites[0] || createEmptySprite();
+    if (defeated.width <= 5) {
+      defeated = crouchRight;
+    }
   } else {
     defeated = crouchRight;
   }
@@ -485,15 +626,13 @@ export function createFallbackSprites(charId: CharacterId): CharacterSprites {
     subframe: number
   ): SlicedSprite => {
     const c = document.createElement('canvas');
-    c.width = 160;
-    c.height = 180;
+    c.width = 200;
+    c.height = 225;
     const ctx = c.getContext('2d')!;
 
     ctx.save();
-    ctx.translate(80, 150);
-    if (facing === -1) {
-      ctx.scale(-1, 1);
-    }
+    ctx.translate(100, 190);
+    ctx.scale(facing * 1.25, 1.25);
 
     if (isVareta) {
       // Vareta: Trenchcoat, shaggy hair, beard, bottle

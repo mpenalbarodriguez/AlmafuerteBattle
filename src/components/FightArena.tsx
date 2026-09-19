@@ -499,7 +499,7 @@ export const FightArena: React.FC<FightArenaProps> = ({
 
         ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
         ctx.beginPath();
-        ctx.ellipse(fighter.x, GROUND_Y + 4, 38 * shadowScale, 9 * shadowScale, 0, 0, Math.PI * 2);
+        ctx.ellipse(fighter.x, GROUND_Y + 4, 48 * shadowScale, 11 * shadowScale, 0, 0, Math.PI * 2);
         ctx.fill();
       });
 
@@ -584,14 +584,14 @@ export const FightArena: React.FC<FightArenaProps> = ({
           ctx.filter = 'brightness(2.2) contrast(1.5)';
         }
 
-        // Target display size for character: ~165px tall
+        // Target display size for character: ~206px tall (+25% bigger)
         const isDefeated = fighter.state === 'knockdown' || fighter.health <= 0;
-        const targetHeight = fighter.state === 'crouch' ? 120 : isDefeated ? 90 : 165;
+        const targetHeight = fighter.state === 'crouch' ? 150 : isDefeated ? 112 : 206;
         const aspect = sprite.width / (sprite.height || 1);
         const targetWidth = targetHeight * aspect;
 
         const drawX = fighter.x - targetWidth / 2;
-        const drawY = isDefeated ? fighter.y - targetHeight + 12 : fighter.y - targetHeight;
+        const drawY = isDefeated ? fighter.y - targetHeight + 14 : fighter.y - targetHeight;
 
         ctx.drawImage(sprite.image, drawX, drawY, targetWidth, targetHeight);
         ctx.restore();
@@ -771,67 +771,71 @@ export const FightArena: React.FC<FightArenaProps> = ({
     <div 
       ref={containerRef}
       style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
-      className="relative w-full max-h-[100dvh] flex items-center justify-center bg-black overflow-hidden select-none"
+      className="relative w-full max-h-[100dvh] flex flex-col items-center justify-between bg-black overflow-hidden select-none"
     >
-      {/* 16:9 Canvas container: dynamically clamped so it fits all mobile screens without overflow */}
-      <div 
-        style={{
-          width: 'min(100vw, calc(var(--vh, 1vh) * 100 * (1000 / 560)))',
-          height: 'min(calc(var(--vh, 1vh) * 100), calc(100vw * (560 / 1000)))',
-          maxWidth: '1000px',
-          maxHeight: '560px',
-          transform: zoomLevel !== 1 ? `scale(${zoomLevel})` : undefined,
-          transformOrigin: 'center center',
-          transition: 'transform 0.15s ease-out'
-        }}
-        className="relative aspect-[1000/560] shadow-2xl bg-neutral-950 border border-neutral-800 shrink-0"
-      >
-        <canvas
-          id="fight-canvas"
-          ref={canvasRef}
-          width={ARENA_WIDTH}
-          height={ARENA_HEIGHT}
-          className="w-full h-full object-contain block"
-        />
+      {/* 16:9 Canvas container: dynamically sized to fit above controls, keeping fighters 100% visible */}
+      <div className="relative flex-1 min-h-0 w-full flex items-center justify-center p-1 sm:p-2">
+        <div 
+          style={{
+            width: `min(100%, calc((var(--vh, 1vh) * 100 - ${showTouchControls ? '135px' : '0px'}) * (1000 / 560)))`,
+            height: `min(calc(var(--vh, 1vh) * 100 - ${showTouchControls ? '135px' : '0px'}), calc(100% * (560 / 1000)))`,
+            maxWidth: '1000px',
+            maxHeight: `calc(100dvh - ${showTouchControls ? '135px' : '0px'})`,
+            transform: zoomLevel !== 1 ? `scale(${zoomLevel})` : undefined,
+            transformOrigin: 'center center',
+            transition: 'transform 0.15s ease-out'
+          }}
+          className="relative aspect-[1000/560] shadow-2xl bg-neutral-950 border border-neutral-800 shrink-0"
+        >
+          <canvas
+            id="fight-canvas"
+            ref={canvasRef}
+            width={ARENA_WIDTH}
+            height={ARENA_HEIGHT}
+            className="w-full h-full object-contain block"
+          />
 
-        {/* Retro CRT Scanlines overlay */}
-        <div className="absolute inset-0 crt-overlay pointer-events-none" />
+          {/* Retro CRT Scanlines overlay */}
+          <div className="absolute inset-0 crt-overlay pointer-events-none" />
 
-        {/* HUD Layer with top victory banners */}
-        <HUD
-          f1={f1}
-          f2={f2}
-          timer={timer}
-          currentRound={currentRound}
-          matchPhase={matchPhase}
-          winner={winner}
-          roundAnnounceText={roundAnnounceText}
-          isMuted={isMuted}
-          onToggleMute={() => setIsMuted(sounds.toggleMute())}
-          onOpenControls={onOpenControls}
-          onOpenSprites={onOpenSprites}
-          onRestartMatch={handleRestartMatch}
-          gameMode={gameMode}
-          onExitToMenu={onExitToMenu}
-          showTouchControls={showTouchControls}
-          onToggleTouchControls={() => setShowTouchControls(p => !p)}
-          isFullscreen={isFullscreen}
-          onToggleFullscreen={toggleFullscreen}
-          zoomLevel={zoomLevel}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onResetZoom={handleResetZoom}
-        />
+          {/* HUD Layer with top victory banners */}
+          <HUD
+            f1={f1}
+            f2={f2}
+            timer={timer}
+            currentRound={currentRound}
+            matchPhase={matchPhase}
+            winner={winner}
+            roundAnnounceText={roundAnnounceText}
+            isMuted={isMuted}
+            onToggleMute={() => setIsMuted(sounds.toggleMute())}
+            onOpenControls={onOpenControls}
+            onOpenSprites={onOpenSprites}
+            onRestartMatch={handleRestartMatch}
+            gameMode={gameMode}
+            onExitToMenu={onExitToMenu}
+            showTouchControls={showTouchControls}
+            onToggleTouchControls={() => setShowTouchControls(p => !p)}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={toggleFullscreen}
+            zoomLevel={zoomLevel}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onResetZoom={handleResetZoom}
+          />
+        </div>
+      </div>
 
-        {/* Virtual Touch Controls for Landscape Mobile */}
-        {showTouchControls && (
+      {/* Virtual Touch Controls placed strictly BELOW the stage image */}
+      {showTouchControls && (
+        <div className="w-full shrink-0 bg-neutral-950/95 border-t border-neutral-800/80 z-20">
           <TouchControls
             onControlChange={handleTouchControl}
             canSpecial={f1.meter >= 25}
             isPortrait={false}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -26,7 +26,7 @@ export function createFighter(
     name: id === 'vareta' ? 'Vareta' : id === 'caito' ? 'Caíto' : 'Dr. Telmo',
     isPlayer1,
     isCPU,
-    x: isPlayer1 ? 260 : 740,
+    x: isPlayer1 ? 240 : 760,
     y: GROUND_Y,
     vx: 0,
     vy: 0,
@@ -102,8 +102,8 @@ export function updateFighter(
 
   // Prevent walking through each other unless jumping over
   const dist = Math.abs(fighter.x - opponent.x);
-  if (dist < 45 && fighter.isGrounded && opponent.isGrounded) {
-    const push = (45 - dist) / 2;
+  if (dist < 56 && fighter.isGrounded && opponent.isGrounded) {
+    const push = (56 - dist) / 2;
     if (fighter.x < opponent.x) {
       fighter.x -= push;
       opponent.x += push;
@@ -353,8 +353,8 @@ export function updateFighter(
 
 export function getFighterHurtbox(fighter: Fighter): Hurtbox {
   const isCrouched = fighter.state === 'crouch';
-  const h = isCrouched ? 70 : 130;
-  const w = 55;
+  const h = isCrouched ? 88 : 162;
+  const w = 68;
   return {
     x: fighter.x - w / 2,
     y: fighter.y - h,
@@ -370,13 +370,13 @@ export function getFighterHitbox(fighter: Fighter): Hitbox | null {
 
   if (fighter.state === 'punch' && fighter.stateTimer >= 4 && fighter.stateTimer <= 11) {
     return {
-      x: fighter.x + (f === 1 ? 15 : -65),
-      y: fighter.y - 105,
-      width: 50,
-      height: 35,
+      x: fighter.x + (f === 1 ? 18 : -82),
+      y: fighter.y - 130,
+      width: 62,
+      height: 44,
       damage: 9,
       hitStun: 16,
-      knockbackX: f * 5,
+      knockbackX: f * 6,
       knockbackY: -2,
       type: 'punch'
     };
@@ -384,13 +384,13 @@ export function getFighterHitbox(fighter: Fighter): Hitbox | null {
 
   if (fighter.state === 'kick' && fighter.stateTimer >= 6 && fighter.stateTimer <= 15) {
     return {
-      x: fighter.x + (f === 1 ? 18 : -75),
-      y: fighter.y - 95,
-      width: 60,
-      height: 45,
+      x: fighter.x + (f === 1 ? 22 : -94),
+      y: fighter.y - 118,
+      width: 75,
+      height: 56,
       damage: 15,
       hitStun: 22,
-      knockbackX: f * 8,
+      knockbackX: f * 9,
       knockbackY: -3,
       type: 'kick'
     };
@@ -398,13 +398,13 @@ export function getFighterHitbox(fighter: Fighter): Hitbox | null {
 
   if (fighter.state === 'air_punch' && fighter.stateTimer >= 3 && fighter.stateTimer <= 14) {
     return {
-      x: fighter.x + (f === 1 ? 15 : -60),
-      y: fighter.y - 90,
-      width: 48,
-      height: 35,
+      x: fighter.x + (f === 1 ? 18 : -75),
+      y: fighter.y - 112,
+      width: 60,
+      height: 44,
       damage: 10,
       hitStun: 18,
-      knockbackX: f * 5,
+      knockbackX: f * 6,
       knockbackY: 0,
       type: 'air_punch'
     };
@@ -412,13 +412,13 @@ export function getFighterHitbox(fighter: Fighter): Hitbox | null {
 
   if (fighter.state === 'air_kick' && fighter.stateTimer >= 4 && fighter.stateTimer <= 17) {
     return {
-      x: fighter.x + (f === 1 ? 18 : -75),
-      y: fighter.y - 75,
-      width: 58,
-      height: 45,
+      x: fighter.x + (f === 1 ? 22 : -94),
+      y: fighter.y - 94,
+      width: 72,
+      height: 56,
       damage: 16,
       hitStun: 24,
-      knockbackX: f * 8,
+      knockbackX: f * 9,
       knockbackY: 2,
       type: 'air_kick'
     };

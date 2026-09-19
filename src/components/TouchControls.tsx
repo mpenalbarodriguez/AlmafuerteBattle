@@ -314,80 +314,86 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     );
   }
 
-  // LANDSCAPE / FULLSCREEN CONTROLS: Floating Ergonomic Palanca + Doubled Buttons
+  // LANDSCAPE / DESKTOP CONTROLS: Dedicated bottom bar below stage
   return (
     <div 
-      id="landscape-touch-overlay"
-      className="absolute inset-0 pointer-events-none z-30 select-none touch-control-btn flex justify-between items-end p-3 sm:p-5"
+      id="landscape-touch-bar"
+      className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-2 flex items-center justify-between select-none touch-control-btn"
     >
-      {/* Left Bottom: Virtual Joystick (Palanca) */}
-      <div className="pointer-events-auto bg-neutral-950/70 p-2.5 rounded-3xl backdrop-blur-sm border border-white/15 shadow-2xl flex flex-col items-center">
-        <VirtualJoystick onDirectionChange={handleJoystickDirections} size={145} />
-        <span className="text-[10px] text-amber-400 font-mono mt-1 font-bold tracking-widest">PALANCA</span>
+      {/* Left: Virtual Joystick (Palanca Arcade) */}
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-col items-center">
+          <VirtualJoystick onDirectionChange={handleJoystickDirections} size={105} />
+          <span className="text-[10px] text-amber-400 font-mono mt-0.5 font-bold tracking-wider">PALANCA</span>
+        </div>
       </div>
 
-      {/* Right Bottom: Doubled Action Buttons Cluster */}
-      <div className="pointer-events-auto bg-neutral-950/70 p-3 rounded-3xl backdrop-blur-sm border border-white/15 shadow-2xl">
-        <div className="flex items-center gap-2.5 sm:gap-3.5">
-          {/* Bloqueo Button */}
-          <button
-            id="touch-landscape-block"
-            {...bindButton('block')}
-            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-cyan-700 active:bg-cyan-500 border-2 border-cyan-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
-            title="Bloqueo Defensivo"
-          >
-            <Shield className="w-6 h-6 mb-0.5 text-cyan-200" />
-            <span className="font-bold">BLOQUEO</span>
-          </button>
+      {/* Center: Retro status hint */}
+      <div className="hidden md:flex flex-col items-center justify-center text-center px-2">
+        <span className="text-[11px] font-arcade text-neutral-400 tracking-wider">CONTROLES ARCADE JUGADOR 1</span>
+        <span className="text-[10px] text-neutral-500 font-mono">ARRASTRA LA PALANCA PARA MOVER • PULSA BOTONES</span>
+      </div>
 
-          {/* Punch Button (PIÑA) */}
-          <button
-            id="touch-landscape-punch"
-            {...bindButton('punch')}
-            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-blue-600 active:bg-blue-400 border-2 border-blue-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
-            title="Golpe"
-          >
-            <Flame className="w-6 h-6 mb-0.5 text-blue-200" />
-            <span className="font-bold">PIÑA</span>
-          </button>
+      {/* Right: Action Buttons Row (Bloqueo, Piña, Pata, Salto, Poder) */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Bloqueo Button */}
+        <button
+          id="touch-landscape-block"
+          {...bindButton('block')}
+          className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-2xl bg-cyan-700 active:bg-cyan-500 border-2 border-cyan-400 active:scale-95 font-arcade text-xs font-bold text-white shadow-lg flex flex-col items-center justify-center transition-transform"
+          title="Bloqueo Defensivo"
+        >
+          <Shield className="w-5 h-5 mb-0.5 text-cyan-200" />
+          <span className="text-[10px] font-bold">BLOQUEO</span>
+        </button>
 
-          {/* Kick Button (PATADA) */}
-          <button
-            id="touch-landscape-kick"
-            {...bindButton('kick')}
-            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-red-600 active:bg-red-400 border-2 border-red-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
-            title="Patada"
-          >
-            <span className="text-xl leading-none mb-0.5">💥</span>
-            <span className="font-bold">PATA</span>
-          </button>
+        {/* Punch Button (PIÑA) */}
+        <button
+          id="touch-landscape-punch"
+          {...bindButton('punch')}
+          className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-2xl bg-blue-600 active:bg-blue-400 border-2 border-blue-400 active:scale-95 font-arcade text-xs font-bold text-white shadow-lg flex flex-col items-center justify-center transition-transform"
+          title="Golpe"
+        >
+          <Flame className="w-5 h-5 mb-0.5 text-blue-200" />
+          <span className="text-[10px] font-bold">PIÑA</span>
+        </button>
 
-          {/* Salto Button */}
-          <button
-            id="touch-landscape-jump"
-            {...bindButton('up')}
-            className="w-[74px] h-[74px] sm:w-[86px] sm:h-[86px] rounded-full bg-emerald-600 active:bg-emerald-400 border-2 border-emerald-400 active:scale-90 font-arcade text-xs font-bold text-white shadow-xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs"
-            title="Salto"
-          >
-            <ChevronUp className="w-7 h-7 -mb-1 text-emerald-100" />
-            <span className="font-bold">SALTO</span>
-          </button>
+        {/* Kick Button (PATADA) */}
+        <button
+          id="touch-landscape-kick"
+          {...bindButton('kick')}
+          className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-2xl bg-red-600 active:bg-red-400 border-2 border-red-400 active:scale-95 font-arcade text-xs font-bold text-white shadow-lg flex flex-col items-center justify-center transition-transform"
+          title="Patada"
+        >
+          <span className="text-lg leading-none mb-0.5">💥</span>
+          <span className="text-[10px] font-bold">PATA</span>
+        </button>
 
-          {/* Special Blast Button */}
-          <button
-            id="touch-landscape-special"
-            {...bindButton('special')}
-            className={`w-[84px] h-[84px] sm:w-[96px] sm:h-[96px] rounded-full border-2 active:scale-90 font-arcade text-xs font-bold shadow-2xl flex flex-col items-center justify-center transition-transform backdrop-blur-xs ${
-              canSpecial 
-                ? 'bg-gradient-to-b from-amber-400 to-amber-600 border-amber-200 text-black animate-pulse shadow-[0_0_20px_#f59e0b]' 
-                : 'bg-neutral-900 border-neutral-700 text-neutral-500'
-            }`}
-            title="Poder Especial"
-          >
-            <Zap className={`w-7 h-7 ${canSpecial ? 'text-black' : 'text-neutral-600'}`} />
-            <span className="font-bold">PODER</span>
-          </button>
-        </div>
+        {/* Salto Button */}
+        <button
+          id="touch-landscape-jump"
+          {...bindButton('up')}
+          className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-2xl bg-emerald-600 active:bg-emerald-400 border-2 border-emerald-400 active:scale-95 font-arcade text-xs font-bold text-white shadow-lg flex flex-col items-center justify-center transition-transform"
+          title="Salto"
+        >
+          <ChevronUp className="w-6 h-6 -mb-1 text-emerald-100" />
+          <span className="text-[10px] font-bold">SALTO</span>
+        </button>
+
+        {/* Special Blast Button */}
+        <button
+          id="touch-landscape-special"
+          {...bindButton('special')}
+          className={`h-[58px] sm:h-[68px] px-3 sm:px-4 rounded-2xl border-2 active:scale-95 font-arcade text-xs font-bold shadow-xl flex items-center justify-center gap-1.5 transition-transform ${
+            canSpecial 
+              ? 'bg-gradient-to-r from-amber-500 to-yellow-400 border-amber-200 text-black animate-pulse shadow-[0_0_16px_#f59e0b]' 
+              : 'bg-neutral-900 border-neutral-700 text-neutral-500'
+          }`}
+          title="Poder Especial"
+        >
+          <Zap className={`w-5 h-5 ${canSpecial ? 'text-black' : 'text-neutral-600'}`} />
+          <span className="text-xs font-bold whitespace-nowrap">PODER</span>
+        </button>
       </div>
     </div>
   );
